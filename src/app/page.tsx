@@ -1,5 +1,6 @@
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
+import Calendar from "@/components/calendar/Calendar";
 
 export default function Home() {
   return (
@@ -7,6 +8,7 @@ export default function Home() {
       <Header />
       <Sidebar />
       <main
+        className="transition-all duration-300"
         style={{
           marginTop: "48px",
           marginLeft: "210px",
@@ -14,7 +16,15 @@ export default function Home() {
           minHeight: "calc(100vh - 48px)",
         }}
       >
-        {/*コンテンツを追加 */}
+        <div
+          style={{
+            height: "4px",
+            backgroundColor: "#4a90d9",
+            marginBottom: "16px",
+            borderRadius: "2px",
+          }}
+        />
+        <Calendar />
       </main>
     </div>
   );
