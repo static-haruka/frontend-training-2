@@ -34,14 +34,12 @@ export default function Calendar() {
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDay = new Date(year, month, 1).getDay();
-
   const daysInPrevMonth = new Date(year, month, 0).getDate();
+
   const prevDays = Array.from({ length: firstDay }, (_, i) =>
     daysInPrevMonth - firstDay + 1 + i
   );
-
   const currentDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-
   const totalCells = 42;
   const nextDays = Array.from(
     { length: totalCells - prevDays.length - currentDays.length },
@@ -53,6 +51,14 @@ export default function Calendar() {
     month === today.getMonth() &&
     year === today.getFullYear();
 
+  const cellStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "36px",
+    fontSize: "12px",
+  };
+
   return (
     <div
       className="inline-block rounded"
@@ -62,7 +68,6 @@ export default function Calendar() {
         minWidth: "320px",
       }}
     >
-      {/* カレンダーヘッダー */}
       <div
         className="flex items-center gap-3 px-4 py-3"
         style={{ borderBottom: "1px solid #e2e8f0" }}
@@ -86,7 +91,6 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* 曜日ヘッダー */}
       <div className="grid grid-cols-7">
         {WEEKDAYS.map((day, i) => (
           <div
@@ -102,16 +106,13 @@ export default function Calendar() {
         ))}
       </div>
 
-      {/* 日付グリッド */}
       <div className="grid grid-cols-7">
-        {/* 前月 */}
         {prevDays.map((day, i) => (
-          <div key={`prev-${i}`} className="text-center text-xs py-3" style={{ color: "#c0ccd8" }}>
+          <div key={`prev-${i}`} style={{ ...cellStyle, color: "#c0ccd8" }}>
             {day}
           </div>
         ))}
 
-        {/* 当月 */}
         {currentDays.map((day) => {
           const colIndex = (firstDay + day - 1) % 7;
           const isSun = colIndex === 0;
@@ -121,18 +122,19 @@ export default function Calendar() {
           return (
             <div
               key={`cur-${day}`}
-              className="text-center text-xs py-3"
-              style={{ color: isSun || isSat ? "#ef4444" : "#2d3748" }}
+              style={{ ...cellStyle, color: isSun || isSat ? "#ef4444" : "#2d3748" }}
             >
               {todayCell ? (
                 <span
                   style={{
-                    display: "inline-block",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     width: "28px",
                     height: "28px",
-                    lineHeight: "28px",
                     backgroundColor: "#bfdbfe",
                     borderRadius: "4px",
+                    fontSize: "12px",
                   }}
                 >
                   {day}
@@ -144,9 +146,8 @@ export default function Calendar() {
           );
         })}
 
-        {/* 翌月 */}
         {nextDays.map((day, i) => (
-          <div key={`next-${i}`} className="text-center text-xs py-3" style={{ color: "#c0ccd8" }}>
+          <div key={`next-${i}`} style={{ ...cellStyle, color: "#c0ccd8" }}>
             {day}
           </div>
         ))}
