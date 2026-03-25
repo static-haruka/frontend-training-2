@@ -11,6 +11,8 @@ type Props = {
   onToggle: () => void;
 };
 
+const ICON_AREA_WIDTH = 56;
+
 export default function Sidebar({ expanded, onToggle }: Props) {
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -20,7 +22,25 @@ export default function Sidebar({ expanded, onToggle }: Props) {
     setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  const sidebarWidth = expanded ? 210 : 56;
+  const sidebarWidth = expanded ? 210 : ICON_AREA_WIDTH;
+
+  const iconArea = {
+    minWidth: `${ICON_AREA_WIDTH}px`,
+    width: `${ICON_AREA_WIDTH}px`,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  } as React.CSSProperties;
+
+  const rowStyle = (bg: string): React.CSSProperties => ({
+    display: "flex",
+    alignItems: "center",
+    height: "40px",
+    backgroundColor: bg,
+    cursor: "pointer",
+    width: "100%",
+  });
 
   return (
     <>
@@ -52,10 +72,12 @@ export default function Sidebar({ expanded, onToggle }: Props) {
           width: sidebarWidth,
           backgroundColor: "#2d3748",
           overflowX: "hidden",
+          overflowY: "scroll",
+          scrollbarWidth: "none",
           zIndex: 20,
         }}
       >
-        <nav className="flex-1 overflow-y-auto py-2">
+        <nav>
           {navItems.map((item) => {
             const Icon = item.icon;
             const hasChildren = item.children && item.children.length > 0;
@@ -69,21 +91,21 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                     onClick={() => toggleMenu(item.label)}
                     onMouseEnter={() => setHoveredItem(item.label)}
                     onMouseLeave={() => setHoveredItem(null)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors text-left"
+                    className="text-sm transition-colors text-left"
                     style={{
+                      ...rowStyle(isOpen ? "#1a202c" : "transparent"),
                       color: isHovered ? "#90cdf4" : "#e2e8f0",
-                      backgroundColor: isOpen ? "#1a202c" : "transparent",
                     }}
                   >
-                    <Icon size={18} className="flex-shrink-0" />
+                    <span style={iconArea}><Icon size={18} /></span>
                     {expanded && (
                       <>
-                        <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis">
+                        <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                           {item.label}
                         </span>
                         {isOpen
-                          ? <ChevronDown size={14} className="flex-shrink-0" />
-                          : <ChevronUp size={14} className="flex-shrink-0" />
+                          ? <ChevronDown size={14} className="flex-shrink-0 mr-3" />
+                          : <ChevronUp size={14} className="flex-shrink-0 mr-3" />
                         }
                       </>
                     )}
@@ -100,16 +122,16 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                             href={child.href}
                             onMouseEnter={() => setHoveredItem(child.href)}
                             onMouseLeave={() => setHoveredItem(null)}
-                            className="flex items-center gap-3 px-4 py-2 text-sm transition-colors"
+                            className="text-sm transition-colors"
                             style={{
+                              ...rowStyle("transparent"),
                               color: isChildHovered ? "#90cdf4" : "#e2e8f0",
-                              backgroundColor: "transparent",
                               textDecoration: "none",
                             }}
                           >
-                            <ChildIcon size={18} className="flex-shrink-0" />
+                            <span style={iconArea}><ChildIcon size={18} /></span>
                             {expanded && (
-                              <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                              <span className="whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                                 {child.label}
                               </span>
                             )}
@@ -128,16 +150,16 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                 href={item.href!}
                 onMouseEnter={() => setHoveredItem(item.label)}
                 onMouseLeave={() => setHoveredItem(null)}
-                className="flex items-center gap-3 px-4 py-2.5 text-sm transition-colors"
+                className="text-sm transition-colors"
                 style={{
+                  ...rowStyle("transparent"),
                   color: isHovered ? "#90cdf4" : "#e2e8f0",
-                  backgroundColor: "transparent",
                   textDecoration: "none",
                 }}
               >
-                <Icon size={18} className="flex-shrink-0" />
+                <span style={iconArea}><Icon size={18} /></span>
                 {expanded && (
-                  <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                  <span className="whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                     {item.label}
                   </span>
                 )}
