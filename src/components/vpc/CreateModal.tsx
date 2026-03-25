@@ -12,10 +12,6 @@ type Props = {
 const STATUS_OPTIONS = [
   "CREATE_COMPLETE",
   "CREATE_FAILED",
-  "CREATE_IN_PROGRESS",
-  "DELETE_COMPLETE",
-  "DELETE_FAILED",
-  "UPDATE_COMPLETE",
 ];
 
 export default function CreateModal({ onClose, onCreate }: Props) {
