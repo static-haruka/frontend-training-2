@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
+import { RefreshCw, Pencil } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import TabBar from "@/components/layout/TabBar";
 import CreateModal from "@/components/vpc/CreateModal";
+import EditModal from "@/components/vpc/EditModal";
 import { VpcStack } from "@/types/vpc";
+import { getStacks, createStack, updateStack } from "@/lib/api/vpc";
 
 const STATUS_OPTIONS = [
   "CREATE_COMPLETE",
@@ -18,12 +20,33 @@ export default function VpcPage() {
   const sidebarWidth = sidebarExpanded ? 210 : 56;
 
   const [stacks, setStacks] = useState<VpcStack[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<VpcStack | null>(null);
 
   const [filterName, setFilterName] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [appliedName, setAppliedName] = useState("");
   const [appliedStatus, setAppliedStatus] = useState("");
+
+  const fetchStacks = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await getStacks();
+      setStacks(data);
+    } catch (e) {
+      setError("データの取得に失敗しました");
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStacks();
+  }, []);
 
   const handleFilter = () => {
     setAppliedName(filterName);
@@ -37,9 +60,24 @@ export default function VpcPage() {
     setAppliedStatus("");
   };
 
-  const handleCreate = (data: Omit<VpcStack, "id">) => {
-    const newStack: VpcStack = { ...data, id: String(Date.now()) };
-    setStacks((prev) => [...prev, newStack]);
+  const handleCreate = async (data: Omit<VpcStack, "id">) => {
+    try {
+      const newStack = await createStack(data);
+      setStacks((prev) => [...prev, newStack]);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleUpdate = async (id: string, data: Partial<VpcStack>) => {
+    try {
+      const updated = await updateStack(id, data);
+      setStacks((prev) =>
+        prev.map((s) => (s.id === id ? updated : s))
+      );
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const filteredStacks = stacks.filter((s) => {
@@ -118,18 +156,14 @@ export default function VpcPage() {
           <div className="flex gap-2 ml-auto">
             <button
               onClick={handleReset}
-              className="px-4 py-1.5 rounded text-sm transition-colors active:opacity-70"
-              style={{
-                border: "1px solid #cbd5e0",
-                color: "#4a5568",
-                backgroundColor: "#e2e8f0",
-              }}
+              className="px-4 py-1.5 rounded text-sm transition-colors"
+              style={{ border: "1px solid #cbd5e0", color: "#4a5568", backgroundColor: "#ffffff" }}
             >
               リセット
             </button>
             <button
               onClick={handleFilter}
-              className="px-4 py-1.5 rounded text-sm text-white transition-colors active:opacity-70"
+              className="px-4 py-1.5 rounded text-sm text-white"
               style={{ backgroundColor: "#4a90d9" }}
             >
               フィルター
@@ -139,65 +173,78 @@ export default function VpcPage() {
 
         <div className="flex justify-end gap-2 mb-2">
           <button
+            onClick={fetchStacks}
             className="p-2 rounded transition-colors active:opacity-60"
-            style={{
-              border: "1px solid #cbd5e0",
-              color: "#718096",
-              backgroundColor: "#e2e8f0",
-            }}
+            style={{ border: "1px solid #cbd5e0", color: "#718096", backgroundColor: "#e2e8f0" }}
           >
             <RefreshCw size={15} />
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="px-4 py-2 rounded text-sm text-white transition-colors active:opacity-70"
+            className="px-4 py-2 rounded text-sm text-white"
             style={{ backgroundColor: "#4a90d9" }}
           >
             新規作成
           </button>
         </div>
 
+        {error && (
+          <div
+            className="mb-3 px-4 py-2 rounded text-sm"
+            style={{ backgroundColor: "#fed7d7", color: "#c53030" }}
+          >
+            {error}
+          </div>
+        )}
+
         <div
-          className="rounded overflow-hidden"
+          className="rounded overflow-x-auto"
           style={{ border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}
         >
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" style={{ minWidth: "900px" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-                {["スタック名", "ステータス", "説明", "作成日時", "更新日時", "削除日時"].map((col) => (
-                  <th
-                    key={col}
-                    className="text-left px-4 py-3 font-medium"
-                    style={{ color: "#4a5568" }}
-                  >
+                {["スタック名", "ステータス", "説明", "作成日時", "更新日時", "削除日時", "操作"].map((col) => (
+                  <th key={col} className="text-left px-4 py-3 font-medium" style={{ color: "#4a5568" }}>
                     {col}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {filteredStacks.length === 0 ? (
+              {loading ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-8 text-sm" style={{ color: "#a0aec0" }}>
+                  <td colSpan={7} className="text-center py-8 text-sm" style={{ color: "#a0aec0" }}>
+                    読み込み中...
+                  </td>
+                </tr>
+              ) : filteredStacks.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-8 text-sm" style={{ color: "#a0aec0" }}>
                     データがありません
                   </td>
                 </tr>
               ) : (
                 filteredStacks.map((stack) => (
                   <tr key={stack.id} style={{ borderBottom: "1px solid #f0f2f5" }}>
-                    <td className="px-4 py-3" style={{ color: "#2d3748" }}>
-                      {stack.stackName}
-                    </td>
-                    <td
-                      className="px-4 py-3"
-                      style={{ color: stack.status === "CREATE_FAILED" ? "#ef4444" : "#2d3748" }}
-                    >
+                    <td className="px-4 py-3" style={{ color: "#4a90d9" }}>{stack.stackName}</td>
+                    <td className="px-4 py-3" style={{ color: stack.status === "CREATE_FAILED" ? "#ef4444" : "#2d3748" }}>
                       {stack.status}
                     </td>
                     <td className="px-4 py-3" style={{ color: "#2d3748" }}>{stack.description}</td>
                     <td className="px-4 py-3" style={{ color: "#718096" }}>{formatDate(stack.createdAt)}</td>
                     <td className="px-4 py-3" style={{ color: "#718096" }}>{formatDate(stack.updatedAt)}</td>
                     <td className="px-4 py-3" style={{ color: "#718096" }}>{formatDate(stack.deletedAt)}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={() => setEditTarget(stack)}
+                        className="flex items-center gap-1 px-3 py-1 rounded text-xs transition-colors"
+                        style={{ backgroundColor: "#4a90d9", color: "#ffffff" }}
+                      >
+                        <Pencil size={12} />
+                        編集
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -210,6 +257,14 @@ export default function VpcPage() {
         <CreateModal
           onClose={() => setShowModal(false)}
           onCreate={handleCreate}
+        />
+      )}
+
+      {editTarget && (
+        <EditModal
+          stack={editTarget}
+          onClose={() => setEditTarget(null)}
+          onUpdate={handleUpdate}
         />
       )}
     </div>
