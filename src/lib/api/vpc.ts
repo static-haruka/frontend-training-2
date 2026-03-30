@@ -9,7 +9,7 @@ export const getStacks = async (): Promise<VpcStack[]> => {
 };
 
 export const createStack = async (
-  data: Omit<VpcStack, "id">
+  data: Omit<VpcStack, "id">,
 ): Promise<VpcStack> => {
   const res = await fetch(`${BASE_URL}/stacks`, {
     method: "POST",
@@ -22,7 +22,7 @@ export const createStack = async (
 
 export const updateStack = async (
   id: string,
-  data: Partial<VpcStack>
+  data: Partial<VpcStack>,
 ): Promise<VpcStack> => {
   const res = await fetch(`${BASE_URL}/stacks/${id}`, {
     method: "PATCH",
@@ -31,4 +31,16 @@ export const updateStack = async (
   });
   if (!res.ok) throw new Error("Failed to update stack");
   return res.json();
+};
+
+export const deleteStack = async (id: string): Promise<void> => {
+  const res = await fetch(`${BASE_URL}/stacks/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("deleteStack failed:", res.status, text);
+    throw new Error(`Failed to delete stack: ${res.status}`);
+  }
 };
