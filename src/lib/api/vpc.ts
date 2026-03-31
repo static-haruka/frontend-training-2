@@ -25,7 +25,7 @@ export const updateStack = async (
   data: Partial<VpcStack>,
 ): Promise<VpcStack> => {
   const res = await fetch(`${BASE_URL}/stacks/${id}`, {
-    method: "PATCH",
+    method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
