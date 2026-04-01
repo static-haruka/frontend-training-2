@@ -4,10 +4,13 @@ import { useState } from "react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import TabBar from "@/components/layout/TabBar";
+import OrgTree from "@/components/users/OrgTree";
+import { orgTree, mockUsers } from "@/lib/mockUsers";
 
 export default function UsersPage() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const sidebarWidth = sidebarExpanded ? 210 : 56;
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>("a-honsha");
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
@@ -45,7 +48,6 @@ export default function UsersPage() {
               <span style={{ fontSize: "10px" }}>▼</span>
             </button>
           </div>
-
           <div className="flex items-center gap-2">
             <button
               className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
@@ -125,23 +127,32 @@ export default function UsersPage() {
               overflowY: "auto",
             }}
           >
-            <div className="px-4 py-3 text-sm" style={{ color: "#a0aec0" }}>
-              階層ツリー
-            </div>
+            <OrgTree
+              nodes={orgTree}
+              selectedId={selectedOrgId}
+              onSelect={setSelectedOrgId}
+            />
           </div>
 
           <div className="flex-1 flex flex-col overflow-hidden">
             <div
               className="flex items-center justify-between px-4 py-3"
-              style={{ borderBottom: "1px solid #e2e8f0" }}
+              style={{
+                borderBottom: "1px solid #e2e8f0",
+                backgroundColor: "#ffffff",
+              }}
             >
               <div>
                 <span
                   className="text-sm font-semibold"
                   style={{ color: "#2d3748" }}
                 >
-                  社員 <span style={{ color: "#4a90d9" }}>0</span>
+                  社員{" "}
+                  <span style={{ color: "#4a90d9" }}>{mockUsers.length}</span>
                 </span>
+                <div className="text-xs mt-0.5" style={{ color: "#a0aec0" }}>
+                  Aテスト本社
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -161,7 +172,10 @@ export default function UsersPage() {
 
             <div
               className="flex items-center gap-1 px-4 py-2 text-sm overflow-x-auto"
-              style={{ borderBottom: "1px solid #e2e8f0" }}
+              style={{
+                borderBottom: "1px solid #e2e8f0",
+                backgroundColor: "#ffffff",
+              }}
             >
               {[
                 "すべて",
@@ -201,7 +215,7 @@ export default function UsersPage() {
                 className="text-sm text-center py-8"
                 style={{ color: "#a0aec0" }}
               >
-                テーブル
+                テーブル（3日目で実装）
               </div>
             </div>
           </div>
