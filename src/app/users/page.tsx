@@ -5,12 +5,16 @@ import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import TabBar from "@/components/layout/TabBar";
 import OrgTree from "@/components/users/OrgTree";
+import UserTable from "@/components/users/UserTable";
 import { orgTree, mockUsers } from "@/lib/mockUsers";
+import { User } from "@/types/user";
 
 export default function UsersPage() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const sidebarWidth = sidebarExpanded ? 210 : 56;
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>("a-honsha");
+  const [editTarget, setEditTarget] = useState<User | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
@@ -211,16 +215,53 @@ export default function UsersPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
-              <div
-                className="text-sm text-center py-8"
-                style={{ color: "#a0aec0" }}
-              >
-                テーブル（3日目で実装）
-              </div>
+              <UserTable
+                users={mockUsers}
+                onEdit={(user) => setEditTarget(user)}
+                onDelete={(user) => setDeleteTarget(user)}
+              />
             </div>
           </div>
         </div>
       </main>
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+        >
+          <div
+            className="rounded-lg shadow-xl p-6 w-full max-w-sm"
+            style={{ backgroundColor: "#ffffff" }}
+          >
+            <h2
+              className="text-base font-semibold mb-2"
+              style={{ color: "#2d3748" }}
+            >
+              削除の確認
+            </h2>
+            <p className="text-sm mb-6" style={{ color: "#718096" }}>
+              {deleteTarget.lastName} {deleteTarget.firstName} を削除しますか？
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 rounded text-sm"
+                style={{ border: "1px solid #cbd5e0", color: "#4a5568" }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="px-4 py-2 rounded text-sm text-white"
+                style={{ backgroundColor: "#ef4444" }}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
