@@ -7,8 +7,11 @@ import TabBar from "@/components/layout/TabBar";
 import OrgTree from "@/components/users/OrgTree";
 import UserTable from "@/components/users/UserTable";
 import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
+import Pagination from "@/components/users/Pagination";
 import { orgTree, mockUsers } from "@/lib/mockUsers";
 import { User } from "@/types/user";
+
+const PAGE_SIZE = 5;
 
 export default function UsersPage() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
@@ -16,6 +19,7 @@ export default function UsersPage() {
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>("a-honsha");
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
@@ -31,6 +35,22 @@ export default function UsersPage() {
     }
     return users;
   }, [activeTab, searchQuery]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
+  const pagedUsers = filteredUsers.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
@@ -181,7 +201,7 @@ export default function UsersPage() {
                   type="text"
                   placeholder="連絡先・ユーザーを検索"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="px-3 py-1.5 text-sm rounded outline-none"
                   style={{
                     border: "1px solid #cbd5e0",
@@ -196,15 +216,22 @@ export default function UsersPage() {
 
             <KanaTab
               activeTab={activeTab}
-              onTabChange={setActiveTab}
+              onTabChange={handleTabChange}
               onCreateClick={() => {}}
             />
 
-            <div className="flex-1 overflow-y-auto p-4">
-              <UserTable
-                users={filteredUsers}
-                onEdit={(user) => setEditTarget(user)}
-                onDelete={(user) => setDeleteTarget(user)}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                <UserTable
+                  users={pagedUsers}
+                  onEdit={(user) => setEditTarget(user)}
+                  onDelete={(user) => setDeleteTarget(user)}
+                />
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
               />
             </div>
           </div>
