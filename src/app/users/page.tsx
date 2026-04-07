@@ -8,7 +8,8 @@ import OrgTree from "@/components/users/OrgTree";
 import UserTable from "@/components/users/UserTable";
 import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
 import Pagination from "@/components/users/Pagination";
-import { orgTree, mockUsers } from "@/lib/mockUsers";
+import CreateUserModal from "@/components/users/CreateUserModal";
+import { orgTree, mockUsers as initialUsers } from "@/lib/mockUsers";
 import { User } from "@/types/user";
 
 const PAGE_SIZE = 5;
@@ -20,21 +21,22 @@ export default function UsersPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [editTarget, setEditTarget] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   const filteredUsers = useMemo(() => {
-    let users = filterUsersByTab(mockUsers, activeTab);
+    let result = filterUsersByTab(users, activeTab);
     if (searchQuery) {
-      users = users.filter(
+      result = result.filter(
         (u) =>
           `${u.lastName}${u.firstName}`.includes(searchQuery) ||
           `${u.lastNameKana}${u.firstNameKana}`.includes(searchQuery) ||
           u.employeeId.includes(searchQuery),
       );
     }
-    return users;
-  }, [activeTab, searchQuery]);
+    return result;
+  }, [users, activeTab, searchQuery]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -44,6 +46,11 @@ export default function UsersPage() {
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
+  };
+
+  const handleCreate = (data: Omit<User, "id">) => {
+    const newUser: User = { ...data, id: String(Date.now()) };
+    setUsers((prev) => [...prev, newUser]);
   };
 
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
@@ -217,14 +224,14 @@ export default function UsersPage() {
             <KanaTab
               activeTab={activeTab}
               onTabChange={handleTabChange}
-              onCreateClick={() => {}}
+              onCreateClick={() => setShowCreateModal(true)}
             />
 
             <div className="flex-1 overflow-y-auto">
               <div className="p-4">
                 <UserTable
                   users={pagedUsers}
-                  onEdit={(user) => setEditTarget(user)}
+                  onEdit={() => {}}
                   onDelete={(user) => setDeleteTarget(user)}
                 />
               </div>
@@ -237,6 +244,13 @@ export default function UsersPage() {
           </div>
         </div>
       </main>
+
+      {showCreateModal && (
+        <CreateUserModal
+          onClose={() => setShowCreateModal(false)}
+          onCreate={handleCreate}
+        />
+      )}
 
       {deleteTarget && (
         <div
