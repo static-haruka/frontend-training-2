@@ -9,6 +9,7 @@ import UserTable from "@/components/users/UserTable";
 import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
 import Pagination from "@/components/users/Pagination";
 import CreateUserModal from "@/components/users/CreateUserModal";
+import EditUserModal from "@/components/users/EditUserModal";
 import { orgTree, mockUsers as initialUsers } from "@/lib/mockUsers";
 import { User } from "@/types/user";
 
@@ -23,6 +24,7 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   const filteredUsers = useMemo(() => {
@@ -51,6 +53,10 @@ export default function UsersPage() {
   const handleCreate = (data: Omit<User, "id">) => {
     const newUser: User = { ...data, id: String(Date.now()) };
     setUsers((prev) => [...prev, newUser]);
+  };
+
+  const handleUpdate = (id: string, data: Partial<User>) => {
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data } : u)));
   };
 
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
@@ -231,7 +237,7 @@ export default function UsersPage() {
               <div className="p-4">
                 <UserTable
                   users={pagedUsers}
-                  onEdit={() => {}}
+                  onEdit={(user) => setEditTarget(user)}
                   onDelete={(user) => setDeleteTarget(user)}
                 />
               </div>
@@ -249,6 +255,14 @@ export default function UsersPage() {
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
           onCreate={handleCreate}
+        />
+      )}
+
+      {editTarget && (
+        <EditUserModal
+          user={editTarget}
+          onClose={() => setEditTarget(null)}
+          onUpdate={handleUpdate}
         />
       )}
 
