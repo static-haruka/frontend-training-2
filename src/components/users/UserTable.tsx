@@ -1,7 +1,7 @@
 "use client";
 
 import { User } from "@/types/user";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ArrowDown, SlidersHorizontal } from "lucide-react";
 
 type Props = {
   users: User[];
@@ -26,17 +26,48 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-            {["名前", "社員ID", "役職/階級", "部署", "会社・所属", "操作"].map(
-              (col) => (
-                <th
-                  key={col}
-                  className="text-left px-4 py-3 font-medium"
-                  style={{ color: "#4a5568" }}
-                >
-                  {col}
-                </th>
-              ),
-            )}
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              <div className="flex items-center gap-1">
+                名前
+                <ArrowDown size={12} style={{ color: "#a0aec0" }} />
+              </div>
+            </th>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              社員ID
+            </th>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              役職/階級
+            </th>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              部署
+            </th>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              <div className="flex items-center gap-1">
+                会社・所属
+                <SlidersHorizontal size={12} style={{ color: "#a0aec0" }} />
+              </div>
+            </th>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={{ color: "#4a5568" }}
+            >
+              操作
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -74,11 +105,7 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
                   <button
                     onClick={() => onEdit(user)}
                     className="flex items-center gap-1 px-3 py-1 rounded text-xs transition-colors"
-                    style={{
-                      border: "1px solid #38a169",
-                      color: "#38a169",
-                      backgroundColor: "#ffffff",
-                    }}
+                    style={{ backgroundColor: "#38a169", color: "#ffffff" }}
                   >
                     <Pencil size={12} />
                     編集
@@ -86,11 +113,7 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
                   <button
                     onClick={() => onDelete(user)}
                     className="flex items-center gap-1 px-3 py-1 rounded text-xs transition-colors"
-                    style={{
-                      border: "1px solid #ef4444",
-                      color: "#ef4444",
-                      backgroundColor: "#ffffff",
-                    }}
+                    style={{ backgroundColor: "#ef4444", color: "#ffffff" }}
                   >
                     <Trash2 size={12} />
                     削除

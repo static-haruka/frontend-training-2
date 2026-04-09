@@ -10,7 +10,12 @@ import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
 import Pagination from "@/components/users/Pagination";
 import CreateUserModal from "@/components/users/CreateUserModal";
 import EditUserModal from "@/components/users/EditUserModal";
-import { orgTree, mockUsers as initialUsers } from "@/lib/mockUsers";
+import {
+  orgTree,
+  mockUsers as initialUsers,
+  getDescendantIds,
+  UserWithOrg,
+} from "@/lib/mockUsers";
 import { User } from "@/types/user";
 
 const PAGE_SIZE = 5;
@@ -22,13 +27,21 @@ export default function UsersPage() {
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState<User[]>(initialUsers);
+  const [users, setUsers] = useState<UserWithOrg[]>(initialUsers);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
 
   const filteredUsers = useMemo(() => {
-    let result = filterUsersByTab(users, activeTab);
+    let result: UserWithOrg[] = users;
+
+    if (selectedOrgId) {
+      const descendantIds = getDescendantIds(orgTree, selectedOrgId);
+      result = result.filter((u) => descendantIds.includes(u.orgId));
+    }
+
+    result = filterUsersByTab(result, activeTab) as UserWithOrg[];
+
     if (searchQuery) {
       result = result.filter(
         (u) =>
@@ -37,8 +50,14 @@ export default function UsersPage() {
           u.employeeId.includes(searchQuery),
       );
     }
+
     return result;
-  }, [users, activeTab, searchQuery]);
+  }, [users, selectedOrgId, activeTab, searchQuery]);
+
+  const handleOrgSelect = (id: string | null) => {
+    setSelectedOrgId(id);
+    setCurrentPage(1);
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -51,12 +70,41 @@ export default function UsersPage() {
   };
 
   const handleCreate = (data: Omit<User, "id">) => {
-    const newUser: User = { ...data, id: String(Date.now()) };
+    const newUser: UserWithOrg = {
+      ...data,
+      id: String(Date.now()),
+      orgId: selectedOrgId || "a-honsha",
+    };
     setUsers((prev) => [...prev, newUser]);
   };
 
   const handleUpdate = (id: string, data: Partial<User>) => {
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data } : u)));
+  };
+
+  const handleDelete = (user: User) => {
+    setUsers((prev) => prev.filter((u) => u.id !== user.id));
+    setDeleteTarget(null);
+    const newTotal = filteredUsers.length - 1;
+    const newTotalPages = Math.ceil(newTotal / PAGE_SIZE);
+    if (currentPage > newTotalPages && newTotalPages > 0) {
+      setCurrentPage(newTotalPages);
+    }
+  };
+
+  const getOrgName = (id: string | null): string => {
+    if (!id) return "";
+    const find = (nodes: typeof orgTree): string => {
+      for (const n of nodes) {
+        if (n.id === id) return n.name;
+        if (n.children) {
+          const found = find(n.children);
+          if (found) return found;
+        }
+      }
+      return "";
+    };
+    return find(orgTree);
   };
 
   const totalPages = Math.ceil(filteredUsers.length / PAGE_SIZE);
@@ -183,7 +231,7 @@ export default function UsersPage() {
             <OrgTree
               nodes={orgTree}
               selectedId={selectedOrgId}
-              onSelect={setSelectedOrgId}
+              onSelect={handleOrgSelect}
             />
           </div>
 
@@ -206,7 +254,7 @@ export default function UsersPage() {
                   </span>
                 </span>
                 <div className="text-xs mt-0.5" style={{ color: "#a0aec0" }}>
-                  Aテスト本社
+                  {getOrgName(selectedOrgId)}
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -282,7 +330,10 @@ export default function UsersPage() {
               削除の確認
             </h2>
             <p className="text-sm mb-6" style={{ color: "#718096" }}>
-              {deleteTarget.lastName} {deleteTarget.firstName} を削除しますか？
+              <span style={{ fontWeight: 600, color: "#2d3748" }}>
+                {deleteTarget.lastName} {deleteTarget.firstName}
+              </span>{" "}
+              を削除しますか？この操作は元に戻せません。
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -293,7 +344,7 @@ export default function UsersPage() {
                 キャンセル
               </button>
               <button
-                onClick={() => setDeleteTarget(null)}
+                onClick={() => handleDelete(deleteTarget)}
                 className="px-4 py-2 rounded text-sm text-white"
                 style={{ backgroundColor: "#ef4444" }}
               >

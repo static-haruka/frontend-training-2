@@ -7,16 +7,8 @@ export type OrgNode = {
 };
 
 export const orgTree: OrgNode[] = [
-  {
-    id: "ht",
-    name: "テストHT社",
-    children: [],
-  },
-  {
-    id: "toranomon",
-    name: "虎ノ門オフィス",
-    children: [],
-  },
+  { id: "ht", name: "テストHT社", children: [] },
+  { id: "toranomon", name: "虎ノ門オフィス", children: [] },
   {
     id: "a-honsha",
     name: "Aテスト本社",
@@ -53,9 +45,12 @@ export const orgTree: OrgNode[] = [
   },
 ];
 
-export const mockUsers: User[] = [
+export type UserWithOrg = User & { orgId: string };
+
+export const mockUsers: UserWithOrg[] = [
   {
     id: "1",
+    orgId: "a-honsha",
     lastName: "外部会社テスト",
     firstName: "1",
     lastNameKana: "ガイブカイシャテスト",
@@ -72,6 +67,7 @@ export const mockUsers: User[] = [
   },
   {
     id: "2",
+    orgId: "a-honsha",
     lastName: "外部会社",
     firstName: "誠",
     lastNameKana: "ガイブカイシャ",
@@ -88,6 +84,7 @@ export const mockUsers: User[] = [
   },
   {
     id: "3",
+    orgId: "a-honsha",
     lastName: "本社社員",
     firstName: "1",
     lastNameKana: "ホンシャシャイン",
@@ -104,6 +101,7 @@ export const mockUsers: User[] = [
   },
   {
     id: "4",
+    orgId: "a-honsha",
     lastName: "森",
     firstName: "誠",
     lastNameKana: "モリ",
@@ -120,6 +118,7 @@ export const mockUsers: User[] = [
   },
   {
     id: "5",
+    orgId: "a-honsha",
     lastName: "大江",
     firstName: "博之",
     lastNameKana: "オオエ",
@@ -136,6 +135,7 @@ export const mockUsers: User[] = [
   },
   {
     id: "6",
+    orgId: "a-honsha",
     lastName: "大高",
     firstName: "慎太郎",
     lastNameKana: "オオタカ",
@@ -152,13 +152,14 @@ export const mockUsers: User[] = [
   },
   {
     id: "7",
+    orgId: "b-honsha",
     lastName: "曽我",
     firstName: "裕貴",
     lastNameKana: "ソガ",
     firstNameKana: "ヒロキ",
     employeeId: "000000001",
-    role: "Aテスト本社",
-    department: "Aテスト本社",
+    role: "Bテスト本社",
+    department: "Bテスト本社",
     company: "一般社員",
     email: "soga@example.com",
     phone: "090-0000-0007",
@@ -168,13 +169,14 @@ export const mockUsers: User[] = [
   },
   {
     id: "8",
+    orgId: "b-honsha",
     lastName: "土屋",
     firstName: "誠",
     lastNameKana: "ツチヤ",
     firstNameKana: "マコト",
     employeeId: "000000001",
-    role: "Aテスト本社",
-    department: "Aテスト本社",
+    role: "Bテスト本社",
+    department: "Bテスト本社",
     company: "一般社員",
     email: "tsuchiya@example.com",
     phone: "090-0000-0008",
@@ -183,3 +185,24 @@ export const mockUsers: User[] = [
     password: "",
   },
 ];
+
+export function getDescendantIds(nodes: OrgNode[], targetId: string): string[] {
+  for (const node of nodes) {
+    if (node.id === targetId) {
+      const ids = [node.id];
+      const collectChildren = (n: OrgNode) => {
+        n.children?.forEach((c) => {
+          ids.push(c.id);
+          collectChildren(c);
+        });
+      };
+      collectChildren(node);
+      return ids;
+    }
+    if (node.children) {
+      const found = getDescendantIds(node.children, targetId);
+      if (found.length > 0) return found;
+    }
+  }
+  return [];
+}
