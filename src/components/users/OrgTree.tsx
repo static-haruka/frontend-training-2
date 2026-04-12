@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronUp, ChevronDown } from "lucide-react";
 import { OrgNode } from "@/lib/mockUsers";
 
 type Props = {
@@ -22,7 +22,7 @@ function OrgTreeNode({
   onSelect: (id: string | null) => void;
   depth: number;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const hasChildren = node.children && node.children.length > 0;
   const isSelected = selectedId === node.id;
 
@@ -41,11 +41,19 @@ function OrgTreeNode({
           color: isSelected ? "#4a90d9" : "#2d3748",
         }}
       >
-        {hasChildren ? (
+        {hasChildren || depth === 0 ? (
           open ? (
-            <ChevronDown size={14} className="flex-shrink-0" style={{ color: "#4a90d9" }} />
+            <ChevronDown
+              size={14}
+              className="flex-shrink-0"
+              style={{ color: "#4a90d9" }}
+            />
           ) : (
-            <ChevronRight size={14} className="flex-shrink-0" style={{ color: "#4a90d9" }} />
+            <ChevronUp
+              size={14}
+              className="flex-shrink-0"
+              style={{ color: "#4a90d9" }}
+            />
           )
         ) : (
           <span style={{ width: "14px", flexShrink: 0 }} />
@@ -70,9 +78,14 @@ function OrgTreeNode({
   );
 }
 
-export default function OrgTree({ nodes, selectedId, onSelect, depth = 0 }: Props) {
+export default function OrgTree({
+  nodes,
+  selectedId,
+  onSelect,
+  depth = 0,
+}: Props) {
   return (
-    <div>
+    <div style={{ overflowY: "auto", height: "100%" }}>
       {nodes.map((node) => (
         <OrgTreeNode
           key={node.id}

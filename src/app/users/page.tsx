@@ -18,7 +18,7 @@ import {
 } from "@/lib/mockUsers";
 import { User } from "@/types/user";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function UsersPage() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
@@ -35,7 +35,7 @@ export default function UsersPage() {
   const filteredUsers = useMemo(() => {
     let result: UserWithOrg[] = users;
 
-    if (selectedOrgId) {
+    if (selectedOrgId && activeTab !== "all") {
       const descendantIds = getDescendantIds(orgTree, selectedOrgId);
       result = result.filter((u) => descendantIds.includes(u.orgId));
     }
@@ -127,105 +127,118 @@ export default function UsersPage() {
         style={{
           marginTop: "58px",
           marginLeft: `${sidebarWidth}px`,
+          paddingTop: "12px",
           minHeight: "calc(100vh - 58px)",
         }}
       >
         <div
-          className="flex items-center justify-between px-6 py-4"
+          className="mx-4 mb-4 rounded-lg"
           style={{
             backgroundColor: "#ffffff",
-            borderBottom: "1px solid #e2e8f0",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
           }}
         >
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold" style={{ color: "#2d3748" }}>
-              ユーザー管理
-            </h1>
-            <button
-              className="flex items-center gap-1 px-3 py-1 rounded text-sm"
-              style={{ color: "#4a90d9", border: "1px solid #4a90d9" }}
-            >
-              在籍中のユーザー
-              <span style={{ fontSize: "10px" }}>▼</span>
-            </button>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-              style={{
-                border: "1px solid #cbd5e0",
-                color: "#4a5568",
-                backgroundColor: "#ffffff",
-              }}
-            >
-              ☰ 表示項目
-            </button>
-            <button
-              className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-              style={{
-                border: "1px solid #cbd5e0",
-                color: "#4a5568",
-                backgroundColor: "#ffffff",
-              }}
-            >
-              ▽ フィルター
-            </button>
-            <button
-              className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-              style={{
-                border: "1px solid #cbd5e0",
-                color: "#4a5568",
-                backgroundColor: "#ffffff",
-              }}
-            >
-              ↑ ソート
-            </button>
-          </div>
-        </div>
+          <div
+            className="px-6 py-4 flex items-center justify-between gap-4"
+            style={{ minHeight: "80px" }}
+          >
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl" style={{ color: "#718096" }}>
+                ユーザー管理
+              </h1>
+              <button
+                className="flex items-center gap-1 px-3 py-1 rounded text-base"
+                style={{ color: "#4a90d9" }}
+              >
+                在籍中のユーザー
+                <span style={{ fontSize: "12px" }}>▼</span>
+              </button>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 justify-start flex-1">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                  style={{
+                    border: "1px solid #cbd5e0",
+                    color: "#4a5568",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <span style={{ color: "#38b6e8" }}>☰</span> 表示項目
+                </button>
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                  style={{
+                    border: "1px solid #cbd5e0",
+                    color: "#4a5568",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <span style={{ color: "#38b6e8" }}>▽</span> フィルター
+                </button>
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                  style={{
+                    border: "1px solid #cbd5e0",
+                    color: "#4a5568",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <span style={{ color: "#38b6e8" }}>↑</span> ソート
+                </button>
+              </div>
 
-        <div
-          className="flex items-center justify-end gap-2 px-6 py-2"
-          style={{
-            backgroundColor: "#ffffff",
-            borderBottom: "1px solid #e2e8f0",
-          }}
-        >
-          <span className="text-sm" style={{ color: "#4a5568" }}>
-            日付を指定して過去のユーザー情報を表示
-          </span>
-          <button
-            className="px-2 py-1 rounded text-sm"
-            style={{
-              border: "1px solid #cbd5e0",
-              color: "#4a5568",
-              backgroundColor: "#ffffff",
-            }}
-          >
-            📅
-          </button>
-          <button
-            className="px-3 py-1 rounded text-sm"
-            style={{
-              border: "1px solid #cbd5e0",
-              color: "#4a5568",
-              backgroundColor: "#ffffff",
-            }}
-          >
-            指定
-          </button>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs whitespace-nowrap"
+                  style={{
+                    border: "1px solid #cbd5e0",
+                    color: "#4a5568",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <span>日付を指定して過去のユーザー情報を表示</span>
+                  <span style={{ color: "#38b6e8" }}>📅</span>
+                </button>
+                <button
+                  className="px-2.5 py-1.5 rounded text-xs font-medium flex-shrink-0"
+                  style={{
+                    border: "1px solid #cbd5e0",
+                    color: "#4a5568",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  指定
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div
           className="flex"
-          style={{ height: "calc(100vh - 58px - 60px - 44px)" }}
+          style={{
+            height: "calc(100vh - 58px - 60px - 44px)",
+            gap: "0",
+            padding: "0 4px 2px 16px",
+          }}
         >
           <div
+            className="rounded-l-lg flex flex-col"
             style={{
               width: "280px",
               flexShrink: 0,
               backgroundColor: "#ffffff",
-              borderRight: "1px solid #e2e8f0",
-              overflowY: "auto",
+              border: "1px solid #e2e8f0",
+              borderRight: "none",
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              overflowY: "hidden",
+              overflowX: "hidden",
+              marginLeft: "0",
+              marginTop: "0",
+              maxHeight: "400px",
+              paddingTop: "0",
             }}
           >
             <OrgTree
@@ -235,65 +248,110 @@ export default function UsersPage() {
             />
           </div>
 
-          <div className="flex-1 flex flex-col overflow-hidden">
+          <div
+            className="flex-1 flex flex-col overflow-hidden"
+            style={{ marginRight: "0", marginLeft: "0" }}
+          >
             <div
-              className="flex items-center justify-between px-4 py-3"
+              className="rounded-r-lg overflow-hidden"
               style={{
-                borderBottom: "1px solid #e2e8f0",
                 backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <div>
-                <span
-                  className="text-sm font-semibold"
-                  style={{ color: "#2d3748" }}
-                >
-                  社員{" "}
-                  <span style={{ color: "#4a90d9" }}>
-                    {filteredUsers.length}
+              <div
+                className="flex items-center justify-between px-4 py-3"
+                style={{
+                  borderBottom: "1px solid #e2e8f0",
+                }}
+              >
+                <div>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: "#a0aec0" }}
+                  >
+                    社員{" "}
+                    <span style={{ color: "#38a169" }}>
+                      {filteredUsers.length}
+                    </span>
                   </span>
-                </span>
-                <div className="text-xs mt-0.5" style={{ color: "#a0aec0" }}>
-                  {getOrgName(selectedOrgId)}
+                  <div className="text-xs mt-0.5" style={{ color: "#a0aec0" }}>
+                    {getOrgName(selectedOrgId)}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div
+                    className="flex items-center"
+                    style={{
+                      border: "1px solid #cbd5e0",
+                      borderRadius: "6px",
+                      paddingRight: "8px",
+                      paddingLeft: "10px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="連絡先・ユーザーを検索"
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      className="py-1 text-xs outline-none flex-1"
+                      style={{
+                        color: "#2d3748",
+                        backgroundColor: "#ffffff",
+                        border: "none",
+                      }}
+                    />
+                    <button
+                      style={{
+                        color: "#4a90d9",
+                        fontSize: "14px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      🔍
+                    </button>
+                  </div>
+                  <button style={{ color: "#718096", fontSize: "14px" }}>
+                    ⚙
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="連絡先・ユーザーを検索"
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="px-3 py-1.5 text-sm rounded outline-none"
-                  style={{
-                    border: "1px solid #cbd5e0",
-                    width: "220px",
-                    color: "#2d3748",
-                  }}
-                />
-                <button style={{ color: "#4a90d9" }}>🔍</button>
-                <button style={{ color: "#718096" }}>⚙</button>
-              </div>
+
+              <KanaTab
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                onCreateClick={() => setShowCreateModal(true)}
+              />
             </div>
 
-            <KanaTab
-              activeTab={activeTab}
-              onTabChange={handleTabChange}
-              onCreateClick={() => setShowCreateModal(true)}
-            />
-
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <UserTable
-                  users={pagedUsers}
-                  onEdit={(user) => setEditTarget(user)}
-                  onDelete={(user) => setDeleteTarget(user)}
+            <div
+              className="rounded-b-lg overflow-hidden"
+              style={{
+                backgroundColor: "#ffffff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <div className="flex-1">
+                <div
+                  className="p-4 overflow-y-auto"
+                  style={{
+                    maxHeight: "calc(100vh - 58px - 60px - 44px - 160px)",
+                  }}
+                >
+                  <UserTable
+                    users={pagedUsers}
+                    onEdit={(user) => setEditTarget(user)}
+                    onDelete={(user) => setDeleteTarget(user)}
+                  />
+                </div>
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
                 />
               </div>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
             </div>
           </div>
         </div>

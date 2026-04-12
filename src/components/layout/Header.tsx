@@ -4,9 +4,10 @@ import { User } from "lucide-react";
 
 type Props = {
   sidebarWidth: number;
+  title?: string;
 };
 
-export default function Header({ sidebarWidth }: Props) {
+export default function Header({ sidebarWidth, title = "管理CMS" }: Props) {
   const titleLeft = sidebarWidth + 24 + 160;
 
   return (
@@ -29,7 +30,7 @@ export default function Header({ sidebarWidth }: Props) {
           whiteSpace: "nowrap",
         }}
       >
-        管理CMS
+        {title}
       </h1>
       <div
         className="ml-auto flex items-center gap-2 text-sm flex-shrink-0"

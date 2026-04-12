@@ -43,8 +43,8 @@ export default function Pagination({
     justifyContent: "center",
     fontSize: "13px",
     cursor: "pointer",
-    border: "none",
-    backgroundColor: active ? "#4a90d9" : "transparent",
+    border: active ? "1px solid #c6f6d5" : "none",
+    backgroundColor: active ? "#38a169" : "transparent",
     color: active ? "#ffffff" : "#4a5568",
     fontWeight: active ? 600 : 400,
   });
@@ -57,7 +57,7 @@ export default function Pagination({
     justifyContent: "center",
     border: "none",
     backgroundColor: "transparent",
-    color: "#718096",
+    color: "#38a169",
     cursor: "pointer",
     borderRadius: "50%",
   };

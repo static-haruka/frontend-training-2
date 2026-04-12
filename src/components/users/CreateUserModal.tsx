@@ -95,8 +95,12 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
         }}
       >
         <div
-          className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-          style={{ borderBottom: "3px solid #38a169" }}
+          className="flex items-center justify-between py-4 flex-shrink-0"
+          style={{
+            borderLeft: "3px solid #38a169",
+            paddingLeft: "16px",
+            paddingRight: "24px",
+          }}
         >
           <h2 className="text-lg font-semibold" style={{ color: "#2d3748" }}>
             新規アカウント作成

@@ -49,7 +49,7 @@ export default function KanaTab({
 }: Props) {
   return (
     <div
-      className="flex items-center gap-1 px-4 py-2 overflow-x-auto"
+      className="flex items-center gap-0.5 px-4 py-2 overflow-x-auto"
       style={{ borderBottom: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}
     >
       {TABS.map((tab) => {
@@ -58,11 +58,11 @@ export default function KanaTab({
           <button
             key={tab.value}
             onClick={() => onTabChange(tab.value)}
-            className="px-2 py-1 rounded text-sm whitespace-nowrap transition-colors"
+            className="px-1.5 py-1 rounded text-xs whitespace-nowrap transition-colors"
             style={{
-              color: isActive ? "#4a90d9" : "#718096",
+              color: isActive ? "#38a169" : "#718096",
               borderBottom: isActive
-                ? "2px solid #4a90d9"
+                ? "2px solid #38a169"
                 : "2px solid transparent",
               fontWeight: isActive ? 600 : 400,
             }}
@@ -73,7 +73,7 @@ export default function KanaTab({
       })}
       <button
         onClick={onCreateClick}
-        className="ml-auto px-4 py-1.5 rounded text-sm text-white flex-shrink-0"
+        className="ml-auto px-3 py-1.5 rounded text-xs text-white flex-shrink-0 font-medium"
         style={{ backgroundColor: "#38a169" }}
       >
         アカウント作成 ＋
