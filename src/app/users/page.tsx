@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import TabBar from "@/components/layout/TabBar";
@@ -10,27 +10,46 @@ import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
 import Pagination from "@/components/users/Pagination";
 import CreateUserModal from "@/components/users/CreateUserModal";
 import EditUserModal from "@/components/users/EditUserModal";
-import {
-  orgTree,
-  mockUsers as initialUsers,
-  getDescendantIds,
-  UserWithOrg,
-} from "@/lib/mockUsers";
+import { orgTree, getDescendantIds, UserWithOrg } from "@/lib/mockUsers";
 import { User } from "@/types/user";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "@/lib/api/users";
 
 const PAGE_SIZE = 10;
 
 export default function UsersPage() {
+  useEffect(() => {
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.documentElement.style.overflow = "";
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const sidebarWidth = sidebarExpanded ? 210 : 56;
   const [selectedOrgId, setSelectedOrgId] = useState<string | null>("a-honsha");
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [users, setUsers] = useState<UserWithOrg[]>(initialUsers);
+  const [users, setUsers] = useState<UserWithOrg[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+
+  useEffect(() => {
+    getUsers()
+      .then(setUsers)
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredUsers = useMemo(() => {
     let result: UserWithOrg[] = users;
@@ -69,20 +88,21 @@ export default function UsersPage() {
     setCurrentPage(1);
   };
 
-  const handleCreate = (data: Omit<User, "id">) => {
-    const newUser: UserWithOrg = {
+  const handleCreate = async (data: Omit<User, "id">) => {
+    const newUser = await createUser({
       ...data,
-      id: String(Date.now()),
       orgId: selectedOrgId || "a-honsha",
-    };
+    });
     setUsers((prev) => [...prev, newUser]);
   };
 
-  const handleUpdate = (id: string, data: Partial<User>) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...data } : u)));
+  const handleUpdate = async (id: string, data: Partial<User>) => {
+    const updated = await updateUser(id, data);
+    setUsers((prev) => prev.map((u) => (u.id === id ? updated : u)));
   };
 
-  const handleDelete = (user: User) => {
+  const handleDelete = async (user: User) => {
+    await deleteUser(user.id);
     setUsers((prev) => prev.filter((u) => u.id !== user.id));
     setDeleteTarget(null);
     const newTotal = filteredUsers.length - 1;
@@ -114,7 +134,7 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
+    <div className="h-screen overflow-hidden" style={{ backgroundColor: "#f0f2f5" }}>
       <Header sidebarWidth={sidebarWidth} />
       <TabBar sidebarWidth={sidebarWidth} />
       <Sidebar
@@ -123,16 +143,15 @@ export default function UsersPage() {
       />
 
       <main
-        className="transition-all duration-200"
+        className="transition-all duration-200 flex flex-col overflow-hidden"
         style={{
           marginTop: "58px",
           marginLeft: `${sidebarWidth}px`,
-          paddingTop: "12px",
-          minHeight: "calc(100vh - 58px)",
+          height: "calc(100vh - 58px)",
         }}
       >
         <div
-          className="mx-4 mb-4 rounded-lg"
+          className="mx-4 mt-3 mb-3 rounded-lg flex-shrink-0"
           style={{
             backgroundColor: "#ffffff",
             border: "1px solid #e2e8f0",
@@ -217,15 +236,11 @@ export default function UsersPage() {
         </div>
 
         <div
-          className="flex"
-          style={{
-            height: "calc(100vh - 58px - 60px - 44px)",
-            gap: "0",
-            padding: "0 4px 2px 16px",
-          }}
+          className="flex flex-1 min-h-0"
+          style={{ padding: "0 4px 8px 16px" }}
         >
           <div
-            className="rounded-l-lg flex flex-col"
+            className="rounded-l-lg flex flex-col overflow-hidden"
             style={{
               width: "280px",
               flexShrink: 0,
@@ -233,12 +248,6 @@ export default function UsersPage() {
               border: "1px solid #e2e8f0",
               borderRight: "none",
               boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-              overflowY: "hidden",
-              overflowX: "hidden",
-              marginLeft: "0",
-              marginTop: "0",
-              maxHeight: "400px",
-              paddingTop: "0",
             }}
           >
             <OrgTree
@@ -250,21 +259,20 @@ export default function UsersPage() {
 
           <div
             className="flex-1 flex flex-col overflow-hidden"
-            style={{ marginRight: "0", marginLeft: "0" }}
+            style={{ minWidth: 0 }}
           >
             <div
-              className="rounded-r-lg overflow-hidden"
               style={{
+                flexShrink: 0,
                 backgroundColor: "#ffffff",
                 border: "1px solid #e2e8f0",
+                borderRadius: "0 8px 0 0",
                 boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
               }}
             >
               <div
                 className="flex items-center justify-between px-4 py-3"
-                style={{
-                  borderBottom: "1px solid #e2e8f0",
-                }}
+                style={{ borderBottom: "1px solid #e2e8f0" }}
               >
                 <div>
                   <span
@@ -326,32 +334,54 @@ export default function UsersPage() {
             </div>
 
             <div
-              className="rounded-b-lg overflow-hidden"
               style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: "auto",
+                backgroundColor: "#ffffff",
+                borderLeft: "1px solid #e2e8f0",
+                borderRight: "1px solid #e2e8f0",
+                padding: "16px",
+              }}
+            >
+              {loading ? (
+                <div
+                  className="flex items-center justify-center h-full"
+                  style={{ color: "#a0aec0", fontSize: "14px" }}
+                >
+                  読み込み中...
+                </div>
+              ) : error ? (
+                <div
+                  className="flex items-center justify-center h-full"
+                  style={{ color: "#ef4444", fontSize: "14px" }}
+                >
+                  {error}
+                </div>
+              ) : (
+                <UserTable
+                  users={pagedUsers}
+                  onEdit={(user) => setEditTarget(user)}
+                  onDelete={(user) => setDeleteTarget(user)}
+                />
+              )}
+            </div>
+
+            <div
+              style={{
+                flexShrink: 0,
                 backgroundColor: "#ffffff",
                 border: "1px solid #e2e8f0",
+                borderTop: "none",
+                borderRadius: "0 0 8px 8px",
                 boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
               }}
             >
-              <div className="flex-1">
-                <div
-                  className="p-4 overflow-y-auto"
-                  style={{
-                    maxHeight: "calc(100vh - 58px - 60px - 44px - 160px)",
-                  }}
-                >
-                  <UserTable
-                    users={pagedUsers}
-                    onEdit={(user) => setEditTarget(user)}
-                    onDelete={(user) => setDeleteTarget(user)}
-                  />
-                </div>
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={setCurrentPage}
-                />
-              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
           </div>
         </div>
