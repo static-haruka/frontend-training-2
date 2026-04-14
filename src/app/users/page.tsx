@@ -5,19 +5,17 @@ import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
 import TabBar from "@/components/layout/TabBar";
 import OrgTree from "@/components/users/OrgTree";
-import UserTable from "@/components/users/UserTable";
+import UserTable, {
+  ALL_COLUMNS,
+  ColumnKey,
+} from "@/components/users/UserTable";
 import KanaTab, { filterUsersByTab } from "@/components/users/KanaTab";
 import Pagination from "@/components/users/Pagination";
 import CreateUserModal from "@/components/users/CreateUserModal";
 import EditUserModal from "@/components/users/EditUserModal";
 import { orgTree, getDescendantIds, UserWithOrg } from "@/lib/mockUsers";
 import { User } from "@/types/user";
-import {
-  getUsers,
-  createUser,
-  updateUser,
-  deleteUser,
-} from "@/lib/api/users";
+import { getUsers, createUser, updateUser, deleteUser } from "@/lib/api/users";
 
 const PAGE_SIZE = 10;
 
@@ -40,6 +38,14 @@ export default function UsersPage() {
   const [users, setUsers] = useState<UserWithOrg[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(
+    ALL_COLUMNS.map((c) => c.key),
+  );
+  const [showColumnsMenu, setShowColumnsMenu] = useState(false);
+  const [filterGender, setFilterGender] = useState("");
+  const [sortOption, setSortOption] = useState("");
+  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -54,7 +60,7 @@ export default function UsersPage() {
   const filteredUsers = useMemo(() => {
     let result: UserWithOrg[] = users;
 
-    if (selectedOrgId && activeTab !== "all") {
+    if (selectedOrgId) {
       const descendantIds = getDescendantIds(orgTree, selectedOrgId);
       result = result.filter((u) => descendantIds.includes(u.orgId));
     }
@@ -70,8 +76,33 @@ export default function UsersPage() {
       );
     }
 
+    if (filterGender) {
+      result = result.filter((u) => u.gender === filterGender);
+    }
+
+    if (sortOption) {
+      result = [...result].sort((a, b) => {
+        switch (sortOption) {
+          case "name-asc":
+            return `${a.lastNameKana}${a.firstNameKana}`.localeCompare(
+              `${b.lastNameKana}${b.firstNameKana}`,
+            );
+          case "name-desc":
+            return `${b.lastNameKana}${b.firstNameKana}`.localeCompare(
+              `${a.lastNameKana}${a.firstNameKana}`,
+            );
+          case "joinedAt-asc":
+            return a.joinedAt.localeCompare(b.joinedAt);
+          case "joinedAt-desc":
+            return b.joinedAt.localeCompare(a.joinedAt);
+          default:
+            return 0;
+        }
+      });
+    }
+
     return result;
-  }, [users, selectedOrgId, activeTab, searchQuery]);
+  }, [users, selectedOrgId, activeTab, searchQuery, filterGender, sortOption]);
 
   const handleOrgSelect = (id: string | null) => {
     setSelectedOrgId(id);
@@ -134,7 +165,10 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="h-screen overflow-hidden" style={{ backgroundColor: "#f0f2f5" }}>
+    <div
+      className="h-screen overflow-hidden"
+      style={{ backgroundColor: "#f0f2f5" }}
+    >
       <Header sidebarWidth={sidebarWidth} />
       <TabBar sidebarWidth={sidebarWidth} />
       <Sidebar
@@ -176,36 +210,262 @@ export default function UsersPage() {
             </div>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 justify-start flex-1">
-                <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-                  style={{
-                    border: "1px solid #cbd5e0",
-                    color: "#4a5568",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <span style={{ color: "#38b6e8" }}>☰</span> 表示項目
-                </button>
-                <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-                  style={{
-                    border: "1px solid #cbd5e0",
-                    color: "#4a5568",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <span style={{ color: "#38b6e8" }}>▽</span> フィルター
-                </button>
-                <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
-                  style={{
-                    border: "1px solid #cbd5e0",
-                    color: "#4a5568",
-                    backgroundColor: "#ffffff",
-                  }}
-                >
-                  <span style={{ color: "#38b6e8" }}>↑</span> ソート
-                </button>
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => {
+                      setShowColumnsMenu((prev) => !prev);
+                      setShowFilterMenu(false);
+                      setShowSortMenu(false);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                    style={{
+                      border: `1px solid ${visibleColumns.length < ALL_COLUMNS.length ? "#4a90d9" : "#cbd5e0"}`,
+                      color:
+                        visibleColumns.length < ALL_COLUMNS.length
+                          ? "#4a90d9"
+                          : "#4a5568",
+                      backgroundColor:
+                        visibleColumns.length < ALL_COLUMNS.length
+                          ? "#ebf8ff"
+                          : "#ffffff",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color:
+                          visibleColumns.length < ALL_COLUMNS.length
+                            ? "#4a90d9"
+                            : "#38b6e8",
+                      }}
+                    >
+                      ☰
+                    </span>{" "}
+                    表示項目
+                  </button>
+                  {showColumnsMenu && (
+                    <>
+                      <div
+                        onClick={() => setShowColumnsMenu(false)}
+                        style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          zIndex: 100,
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          padding: "6px",
+                          minWidth: "140px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#a0aec0",
+                            padding: "4px 8px 6px",
+                          }}
+                        >
+                          表示する列
+                        </p>
+                        {ALL_COLUMNS.map((col) => {
+                          const checked = visibleColumns.includes(col.key);
+                          return (
+                            <button
+                              key={col.key}
+                              onClick={() =>
+                                setVisibleColumns((prev) =>
+                                  checked
+                                    ? prev.filter((k) => k !== col.key)
+                                    : [...prev, col.key],
+                                )
+                              }
+                              className="w-full text-left rounded flex items-center gap-2"
+                              style={{
+                                padding: "6px 8px",
+                                fontSize: "13px",
+                                color: "#2d3748",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: "14px",
+                                  height: "14px",
+                                  borderRadius: "3px",
+                                  border: `1px solid ${checked ? "#4a90d9" : "#cbd5e0"}`,
+                                  backgroundColor: checked
+                                    ? "#4a90d9"
+                                    : "#ffffff",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  flexShrink: 0,
+                                  color: "#ffffff",
+                                  fontSize: "10px",
+                                }}
+                              >
+                                {checked ? "✓" : ""}
+                              </span>
+                              {col.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => {
+                      setShowFilterMenu((prev) => !prev);
+                      setShowSortMenu(false);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                    style={{
+                      border: `1px solid ${filterGender ? "#38a169" : "#cbd5e0"}`,
+                      color: filterGender ? "#38a169" : "#4a5568",
+                      backgroundColor: filterGender ? "#f0fff4" : "#ffffff",
+                    }}
+                  >
+                    <span
+                      style={{ color: filterGender ? "#38a169" : "#38b6e8" }}
+                    >
+                      ▽
+                    </span>
+                    フィルター{filterGender ? `：${filterGender}` : ""}
+                  </button>
+                  {showFilterMenu && (
+                    <>
+                      <div
+                        onClick={() => setShowFilterMenu(false)}
+                        style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          zIndex: 100,
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          padding: "6px",
+                          minWidth: "120px",
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: "11px",
+                            color: "#a0aec0",
+                            padding: "4px 8px 6px",
+                          }}
+                        >
+                          性別
+                        </p>
+                        {["", "男性", "女性", "その他"].map((g) => (
+                          <button
+                            key={g}
+                            onClick={() => {
+                              setFilterGender(g);
+                              setShowFilterMenu(false);
+                              setCurrentPage(1);
+                            }}
+                            className="w-full text-left rounded"
+                            style={{
+                              display: "block",
+                              padding: "6px 8px",
+                              fontSize: "13px",
+                              color: filterGender === g ? "#38a169" : "#2d3748",
+                              backgroundColor:
+                                filterGender === g ? "#f0fff4" : "transparent",
+                            }}
+                          >
+                            {g || "すべて"}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div style={{ position: "relative" }}>
+                  <button
+                    onClick={() => {
+                      setShowSortMenu((prev) => !prev);
+                      setShowFilterMenu(false);
+                    }}
+                    className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
+                    style={{
+                      border: `1px solid ${sortOption ? "#4a90d9" : "#cbd5e0"}`,
+                      color: sortOption ? "#4a90d9" : "#4a5568",
+                      backgroundColor: sortOption ? "#ebf8ff" : "#ffffff",
+                    }}
+                  >
+                    <span style={{ color: sortOption ? "#4a90d9" : "#38b6e8" }}>
+                      ↑
+                    </span>
+                    ソート
+                  </button>
+                  {showSortMenu && (
+                    <>
+                      <div
+                        onClick={() => setShowSortMenu(false)}
+                        style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                      />
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          zIndex: 100,
+                          backgroundColor: "#ffffff",
+                          border: "1px solid #e2e8f0",
+                          borderRadius: "6px",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                          padding: "6px",
+                          minWidth: "150px",
+                        }}
+                      >
+                        {[
+                          { value: "", label: "デフォルト" },
+                          { value: "name-asc", label: "氏名（昇順）" },
+                          { value: "name-desc", label: "氏名（降順）" },
+                          { value: "joinedAt-asc", label: "入社日（昇順）" },
+                          { value: "joinedAt-desc", label: "入社日（降順）" },
+                        ].map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => {
+                              setSortOption(opt.value);
+                              setShowSortMenu(false);
+                            }}
+                            className="w-full text-left rounded"
+                            style={{
+                              display: "block",
+                              padding: "6px 8px",
+                              fontSize: "13px",
+                              color:
+                                sortOption === opt.value
+                                  ? "#4a90d9"
+                                  : "#2d3748",
+                              backgroundColor:
+                                sortOption === opt.value
+                                  ? "#ebf8ff"
+                                  : "transparent",
+                            }}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-2">
@@ -361,6 +621,7 @@ export default function UsersPage() {
               ) : (
                 <UserTable
                   users={pagedUsers}
+                  visibleColumns={visibleColumns}
                   onEdit={(user) => setEditTarget(user)}
                   onDelete={(user) => setDeleteTarget(user)}
                 />

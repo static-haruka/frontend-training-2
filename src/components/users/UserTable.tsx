@@ -3,13 +3,24 @@
 import { User } from "@/types/user";
 import { ArrowDown, SlidersHorizontal, Pencil, Trash2 } from "lucide-react";
 
+export type ColumnKey = "employeeId" | "role" | "department" | "company";
+
+export const ALL_COLUMNS: { key: ColumnKey; label: string }[] = [
+  { key: "employeeId", label: "社員ID" },
+  { key: "role", label: "役職/階級" },
+  { key: "department", label: "部署" },
+  { key: "company", label: "会社・所属" },
+];
+
 type Props = {
   users: User[];
+  visibleColumns: ColumnKey[];
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
 };
 
-export default function UserTable({ users, onEdit, onDelete }: Props) {
+export default function UserTable({ users, visibleColumns, onEdit, onDelete }: Props) {
+  const show = (key: ColumnKey) => visibleColumns.includes(key);
   if (users.length === 0) {
     return (
       <div className="text-center py-12 text-sm" style={{ color: "#a0aec0" }}>
@@ -33,46 +44,36 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
           }}
         >
           <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
+            <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
               <div className="flex items-center gap-1">
                 名前
                 <ArrowDown size={12} style={{ color: "#a0aec0" }} />
               </div>
             </th>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
-              社員ID
-            </th>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
-              役職/階級
-            </th>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
-              部署
-            </th>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
-              <div className="flex items-center gap-1">
-                会社・所属
-                <SlidersHorizontal size={12} style={{ color: "#a0aec0" }} />
-              </div>
-            </th>
-            <th
-              className="text-left px-4 py-3 font-medium"
-              style={{ color: "#a0aec0" }}
-            >
+            {show("employeeId") && (
+              <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+                社員ID
+              </th>
+            )}
+            {show("role") && (
+              <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+                役職/階級
+              </th>
+            )}
+            {show("department") && (
+              <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+                部署
+              </th>
+            )}
+            {show("company") && (
+              <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+                <div className="flex items-center gap-1">
+                  会社・所属
+                  <SlidersHorizontal size={12} style={{ color: "#a0aec0" }} />
+                </div>
+              </th>
+            )}
+            <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
               操作
             </th>
           </tr>
@@ -95,18 +96,26 @@ export default function UserTable({ users, onEdit, onDelete }: Props) {
                   </span>
                 </div>
               </td>
-              <td className="px-4 py-3" style={{ color: "#a0aec0" }}>
-                {user.employeeId}
-              </td>
-              <td className="px-4 py-3" style={{ color: "#2d3748" }}>
-                {user.role}
-              </td>
-              <td className="px-4 py-3" style={{ color: "#2d3748" }}>
-                {user.department}
-              </td>
-              <td className="px-4 py-3" style={{ color: "#2d3748" }}>
-                {user.company}
-              </td>
+              {show("employeeId") && (
+                <td className="px-4 py-3" style={{ color: "#a0aec0" }}>
+                  {user.employeeId}
+                </td>
+              )}
+              {show("role") && (
+                <td className="px-4 py-3" style={{ color: "#2d3748" }}>
+                  {user.role}
+                </td>
+              )}
+              {show("department") && (
+                <td className="px-4 py-3" style={{ color: "#2d3748" }}>
+                  {user.department}
+                </td>
+              )}
+              {show("company") && (
+                <td className="px-4 py-3" style={{ color: "#2d3748" }}>
+                  {user.company}
+                </td>
+              )}
               <td className="px-4 py-3">
                 <div className="flex items-center gap-2">
                   <button
