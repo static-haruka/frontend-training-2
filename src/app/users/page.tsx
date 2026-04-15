@@ -19,6 +19,34 @@ import { getUsers, createUser, updateUser, deleteUser } from "@/lib/api/users";
 
 const PAGE_SIZE = 10;
 
+type UserFilterKey =
+  | "gender"
+  | "employeeId"
+  | "role"
+  | "department"
+  | "company"
+  | "joinedAt";
+
+type UserFilters = Record<UserFilterKey, string>;
+
+const EMPTY_FILTERS: UserFilters = {
+  gender: "",
+  employeeId: "",
+  role: "",
+  department: "",
+  company: "",
+  joinedAt: "",
+};
+
+const FILTER_FIELDS: { key: UserFilterKey; label: string }[] = [
+  { key: "gender", label: "性別" },
+  { key: "employeeId", label: "社員ID" },
+  { key: "role", label: "役職/階級" },
+  { key: "department", label: "部署" },
+  { key: "company", label: "会社・所属" },
+  { key: "joinedAt", label: "入社日" },
+];
+
 export default function UsersPage() {
   useEffect(() => {
     document.documentElement.style.overflow = "hidden";
@@ -42,7 +70,7 @@ export default function UsersPage() {
     ALL_COLUMNS.map((c) => c.key),
   );
   const [showColumnsMenu, setShowColumnsMenu] = useState(false);
-  const [filterGender, setFilterGender] = useState("");
+  const [filters, setFilters] = useState<UserFilters>(EMPTY_FILTERS);
   const [sortOption, setSortOption] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -72,13 +100,18 @@ export default function UsersPage() {
         (u) =>
           `${u.lastName}${u.firstName}`.includes(searchQuery) ||
           `${u.lastNameKana}${u.firstNameKana}`.includes(searchQuery) ||
-          u.employeeId.includes(searchQuery),
+          u.employeeId.includes(searchQuery) ||
+          u.email.includes(searchQuery) ||
+          u.phone.includes(searchQuery),
       );
     }
 
-    if (filterGender) {
-      result = result.filter((u) => u.gender === filterGender);
-    }
+    FILTER_FIELDS.forEach(({ key }) => {
+      const value = filters[key];
+      if (value) {
+        result = result.filter((u) => u[key] === value);
+      }
+    });
 
     if (sortOption) {
       result = [...result].sort((a, b) => {
@@ -102,7 +135,21 @@ export default function UsersPage() {
     }
 
     return result;
-  }, [users, selectedOrgId, activeTab, searchQuery, filterGender, sortOption]);
+  }, [users, selectedOrgId, activeTab, searchQuery, filters, sortOption]);
+
+  const filterOptions = useMemo(() => {
+    return FILTER_FIELDS.reduce(
+      (acc, { key }) => {
+        acc[key] = Array.from(
+          new Set(users.map((user) => user[key]).filter(Boolean)),
+        ).sort((a, b) => a.localeCompare(b, "ja"));
+        return acc;
+      },
+      {} as Record<UserFilterKey, string[]>,
+    );
+  }, [users]);
+
+  const activeFilterCount = Object.values(filters).filter(Boolean).length;
 
   const handleOrgSelect = (id: string | null) => {
     setSelectedOrgId(id);
@@ -326,17 +373,19 @@ export default function UsersPage() {
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
                     style={{
-                      border: `1px solid ${filterGender ? "#38a169" : "#cbd5e0"}`,
-                      color: filterGender ? "#38a169" : "#4a5568",
-                      backgroundColor: filterGender ? "#f0fff4" : "#ffffff",
+                      border: `1px solid ${activeFilterCount ? "#38a169" : "#cbd5e0"}`,
+                      color: activeFilterCount ? "#38a169" : "#4a5568",
+                      backgroundColor: activeFilterCount ? "#f0fff4" : "#ffffff",
                     }}
                   >
                     <span
-                      style={{ color: filterGender ? "#38a169" : "#38b6e8" }}
+                      style={{
+                        color: activeFilterCount ? "#38a169" : "#38b6e8",
+                      }}
                     >
                       ▽
                     </span>
-                    フィルター{filterGender ? `：${filterGender}` : ""}
+                    フィルター{activeFilterCount ? `：${activeFilterCount}` : ""}
                   </button>
                   {showFilterMenu && (
                     <>
@@ -354,40 +403,75 @@ export default function UsersPage() {
                           border: "1px solid #e2e8f0",
                           borderRadius: "6px",
                           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                          padding: "6px",
-                          minWidth: "120px",
+                          padding: "10px",
+                          minWidth: "240px",
                         }}
                       >
-                        <p
-                          style={{
-                            fontSize: "11px",
-                            color: "#a0aec0",
-                            padding: "4px 8px 6px",
-                          }}
-                        >
-                          性別
-                        </p>
-                        {["", "男性", "女性", "その他"].map((g) => (
-                          <button
-                            key={g}
-                            onClick={() => {
-                              setFilterGender(g);
-                              setShowFilterMenu(false);
-                              setCurrentPage(1);
-                            }}
-                            className="w-full text-left rounded"
+                        <div className="flex items-center justify-between gap-3">
+                          <p
                             style={{
-                              display: "block",
-                              padding: "6px 8px",
-                              fontSize: "13px",
-                              color: filterGender === g ? "#38a169" : "#2d3748",
-                              backgroundColor:
-                                filterGender === g ? "#f0fff4" : "transparent",
+                              fontSize: "11px",
+                              color: "#a0aec0",
+                              padding: "0 0 2px",
                             }}
                           >
-                            {g || "すべて"}
-                          </button>
-                        ))}
+                            絞り込み条件
+                          </p>
+                          {activeFilterCount > 0 && (
+                            <button
+                              onClick={() => {
+                                setFilters({ ...EMPTY_FILTERS });
+                                setCurrentPage(1);
+                              }}
+                              className="rounded"
+                              style={{
+                                padding: "2px 6px",
+                                fontSize: "11px",
+                                color: "#38a169",
+                              }}
+                            >
+                              クリア
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          {FILTER_FIELDS.map(({ key, label }) => (
+                            <label
+                              key={key}
+                              className="flex flex-col gap-1"
+                              style={{ fontSize: "12px", color: "#4a5568" }}
+                            >
+                              {label}
+                              <select
+                                value={filters[key]}
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  setFilters((prev) => ({
+                                    ...prev,
+                                    [key]: value,
+                                  }));
+                                  setCurrentPage(1);
+                                }}
+                                className="rounded"
+                                style={{
+                                  border: "1px solid #cbd5e0",
+                                  color: filters[key] ? "#2d3748" : "#a0aec0",
+                                  backgroundColor: "#ffffff",
+                                  padding: "6px 8px",
+                                  fontSize: "13px",
+                                  outline: "none",
+                                }}
+                              >
+                                <option value="">すべて</option>
+                                {filterOptions[key].map((value) => (
+                                  <option key={value} value={value}>
+                                    {value}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}

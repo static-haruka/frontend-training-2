@@ -23,17 +23,13 @@ function OrgTreeNode({
   depth: number;
 }) {
   const [open, setOpen] = useState(false);
-  const hasChildren = node.children && node.children.length > 0;
+  const hasChildren = Boolean(node.children?.length);
   const isSelected = selectedId === node.id;
 
   return (
     <div>
-      <button
-        onClick={() => {
-          onSelect(isSelected ? null : node.id);
-          if (hasChildren) setOpen((prev) => !prev);
-        }}
-        className="w-full flex items-center gap-1 py-2 text-sm text-left transition-colors"
+      <div
+        className="w-full flex items-stretch gap-1 text-sm text-left transition-colors"
         style={{
           paddingLeft: `${16 + depth * 16}px`,
           paddingRight: "16px",
@@ -42,28 +38,45 @@ function OrgTreeNode({
         }}
       >
         {hasChildren || depth === 0 ? (
-          open ? (
-            <ChevronDown
-              size={14}
-              className="flex-shrink-0"
-              style={{ color: "#4a90d9" }}
-            />
-          ) : (
-            <ChevronUp
-              size={14}
-              className="flex-shrink-0"
-              style={{ color: "#4a90d9" }}
-            />
-          )
+          <button
+            type="button"
+            onClick={() => {
+              if (hasChildren) setOpen((prev) => !prev);
+            }}
+            aria-label={`${node.name}を${open ? "閉じる" : "開く"}`}
+            aria-expanded={hasChildren ? open : undefined}
+            disabled={!hasChildren}
+            className="flex w-4 flex-shrink-0 items-center justify-center py-2"
+            style={{
+              color: "#4a90d9",
+              cursor: hasChildren ? "pointer" : "default",
+            }}
+          >
+            {open ? (
+              <ChevronDown size={14} />
+            ) : (
+              <ChevronUp size={14} />
+            )}
+          </button>
         ) : (
-          <span style={{ width: "14px", flexShrink: 0 }} />
+          <span style={{ width: "16px", flexShrink: 0 }} />
         )}
-        <span className="whitespace-nowrap">{node.name}</span>
-      </button>
+        <button
+          type="button"
+          onClick={() => onSelect(isSelected ? null : node.id)}
+          className="min-w-0 flex-1 py-2 text-left whitespace-nowrap"
+          style={{
+            color: "inherit",
+            cursor: "pointer",
+          }}
+        >
+          {node.name}
+        </button>
+      </div>
 
       {hasChildren && open && (
         <div>
-          {node.children!.map((child) => (
+          {node.children?.map((child) => (
             <OrgTreeNode
               key={child.id}
               node={child}
