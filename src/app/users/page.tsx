@@ -24,10 +24,14 @@ type UserFilterKey =
   | "employeeId"
   | "role"
   | "department"
-  | "company"
-  | "joinedAt";
+  | "company";
 
 type UserFilters = Record<UserFilterKey, string>;
+
+type UserDateFilters = {
+  joinedAtFrom: string;
+  joinedAtTo: string;
+};
 
 const EMPTY_FILTERS: UserFilters = {
   gender: "",
@@ -35,7 +39,11 @@ const EMPTY_FILTERS: UserFilters = {
   role: "",
   department: "",
   company: "",
-  joinedAt: "",
+};
+
+const EMPTY_DATE_FILTERS: UserDateFilters = {
+  joinedAtFrom: "",
+  joinedAtTo: "",
 };
 
 const FILTER_FIELDS: { key: UserFilterKey; label: string }[] = [
@@ -44,8 +52,24 @@ const FILTER_FIELDS: { key: UserFilterKey; label: string }[] = [
   { key: "role", label: "役職/階級" },
   { key: "department", label: "部署" },
   { key: "company", label: "会社・所属" },
-  { key: "joinedAt", label: "入社日" },
 ];
+
+const EMPLOYMENT_STATUS_OPTIONS = [
+  { value: "在籍中", label: "在籍中のユーザー" },
+  { value: "退職済み", label: "退職済みのユーザー" },
+  { value: "", label: "すべてのユーザー" },
+];
+
+const isDateValue = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+const isOnOrAfter = (value: string, date: string) =>
+  isDateValue(value) && value >= date;
+
+const isOnOrBefore = (value: string, date: string) =>
+  isDateValue(value) && value <= date;
+
+const getEmploymentStatus = (user: User) =>
+  user.employmentStatus || "在籍中";
 
 export default function UsersPage() {
   useEffect(() => {
@@ -64,6 +88,7 @@ export default function UsersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<UserWithOrg[]>([]);
+  const [employmentStatusFilter, setEmploymentStatusFilter] = useState("在籍中");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(
@@ -71,9 +96,15 @@ export default function UsersPage() {
   );
   const [showColumnsMenu, setShowColumnsMenu] = useState(false);
   const [filters, setFilters] = useState<UserFilters>(EMPTY_FILTERS);
+  const [dateFilters, setDateFilters] =
+    useState<UserDateFilters>(EMPTY_DATE_FILTERS);
+  const [asOfDateInput, setAsOfDateInput] = useState("");
+  const [asOfDate, setAsOfDate] = useState("");
   const [sortOption, setSortOption] = useState("");
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
+  const [showEmploymentStatusMenu, setShowEmploymentStatusMenu] =
+    useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
@@ -91,6 +122,12 @@ export default function UsersPage() {
     if (selectedOrgId) {
       const descendantIds = getDescendantIds(orgTree, selectedOrgId);
       result = result.filter((u) => descendantIds.includes(u.orgId));
+    }
+
+    if (employmentStatusFilter) {
+      result = result.filter(
+        (u) => getEmploymentStatus(u) === employmentStatusFilter,
+      );
     }
 
     result = filterUsersByTab(result, activeTab) as UserWithOrg[];
@@ -112,6 +149,22 @@ export default function UsersPage() {
         result = result.filter((u) => u[key] === value);
       }
     });
+
+    if (dateFilters.joinedAtFrom) {
+      result = result.filter((u) =>
+        isOnOrAfter(u.joinedAt, dateFilters.joinedAtFrom),
+      );
+    }
+
+    if (dateFilters.joinedAtTo) {
+      result = result.filter((u) =>
+        isOnOrBefore(u.joinedAt, dateFilters.joinedAtTo),
+      );
+    }
+
+    if (asOfDate) {
+      result = result.filter((u) => isOnOrBefore(u.joinedAt, asOfDate));
+    }
 
     if (sortOption) {
       result = [...result].sort((a, b) => {
@@ -135,7 +188,17 @@ export default function UsersPage() {
     }
 
     return result;
-  }, [users, selectedOrgId, activeTab, searchQuery, filters, sortOption]);
+  }, [
+    users,
+    selectedOrgId,
+    employmentStatusFilter,
+    activeTab,
+    searchQuery,
+    filters,
+    dateFilters,
+    asOfDate,
+    sortOption,
+  ]);
 
   const filterOptions = useMemo(() => {
     return FILTER_FIELDS.reduce(
@@ -149,7 +212,16 @@ export default function UsersPage() {
     );
   }, [users]);
 
-  const activeFilterCount = Object.values(filters).filter(Boolean).length;
+  const activeFilterCount = [
+    ...Object.values(filters),
+    ...Object.values(dateFilters),
+    asOfDate,
+  ].filter(Boolean).length;
+
+  const employmentStatusLabel =
+    EMPLOYMENT_STATUS_OPTIONS.find(
+      (option) => option.value === employmentStatusFilter,
+    )?.label || "すべてのユーザー";
 
   const handleOrgSelect = (id: string | null) => {
     setSelectedOrgId(id);
@@ -247,13 +319,70 @@ export default function UsersPage() {
               <h1 className="text-2xl" style={{ color: "#718096" }}>
                 ユーザー管理
               </h1>
-              <button
-                className="flex items-center gap-1 px-3 py-1 rounded text-base"
-                style={{ color: "#4a90d9" }}
-              >
-                在籍中のユーザー
-                <span style={{ fontSize: "12px" }}>▼</span>
-              </button>
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => {
+                    setShowEmploymentStatusMenu((prev) => !prev);
+                    setShowColumnsMenu(false);
+                    setShowFilterMenu(false);
+                    setShowSortMenu(false);
+                  }}
+                  className="flex items-center gap-1 px-3 py-1 rounded text-base"
+                  style={{ color: "#4a90d9" }}
+                >
+                  {employmentStatusLabel}
+                  <span style={{ fontSize: "12px" }}>▼</span>
+                </button>
+                {showEmploymentStatusMenu && (
+                  <>
+                    <div
+                      onClick={() => setShowEmploymentStatusMenu(false)}
+                      style={{ position: "fixed", inset: 0, zIndex: 99 }}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 4px)",
+                        left: 0,
+                        zIndex: 100,
+                        backgroundColor: "#ffffff",
+                        border: "1px solid #e2e8f0",
+                        borderRadius: "6px",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        padding: "6px",
+                        minWidth: "160px",
+                      }}
+                    >
+                      {EMPLOYMENT_STATUS_OPTIONS.map((option) => (
+                        <button
+                          key={option.label}
+                          onClick={() => {
+                            setEmploymentStatusFilter(option.value);
+                            setShowEmploymentStatusMenu(false);
+                            setCurrentPage(1);
+                          }}
+                          className="w-full text-left rounded"
+                          style={{
+                            display: "block",
+                            padding: "6px 8px",
+                            fontSize: "13px",
+                            color:
+                              employmentStatusFilter === option.value
+                                ? "#4a90d9"
+                                : "#2d3748",
+                            backgroundColor:
+                              employmentStatusFilter === option.value
+                                ? "#ebf8ff"
+                                : "transparent",
+                          }}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 justify-start flex-1">
@@ -263,6 +392,7 @@ export default function UsersPage() {
                       setShowColumnsMenu((prev) => !prev);
                       setShowFilterMenu(false);
                       setShowSortMenu(false);
+                      setShowEmploymentStatusMenu(false);
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
                     style={{
@@ -370,6 +500,7 @@ export default function UsersPage() {
                     onClick={() => {
                       setShowFilterMenu((prev) => !prev);
                       setShowSortMenu(false);
+                      setShowEmploymentStatusMenu(false);
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
                     style={{
@@ -421,6 +552,9 @@ export default function UsersPage() {
                             <button
                               onClick={() => {
                                 setFilters({ ...EMPTY_FILTERS });
+                                setDateFilters({ ...EMPTY_DATE_FILTERS });
+                                setAsOfDateInput("");
+                                setAsOfDate("");
                                 setCurrentPage(1);
                               }}
                               className="rounded"
@@ -471,6 +605,67 @@ export default function UsersPage() {
                               </select>
                             </label>
                           ))}
+                          <div
+                            className="grid grid-cols-2 gap-2"
+                            style={{ paddingTop: "2px" }}
+                          >
+                            <label
+                              className="flex flex-col gap-1"
+                              style={{ fontSize: "12px", color: "#4a5568" }}
+                            >
+                              入社日（開始）
+                              <input
+                                type="date"
+                                value={dateFilters.joinedAtFrom}
+                                onChange={(e) => {
+                                  setDateFilters((prev) => ({
+                                    ...prev,
+                                    joinedAtFrom: e.target.value,
+                                  }));
+                                  setCurrentPage(1);
+                                }}
+                                className="rounded"
+                                style={{
+                                  border: "1px solid #cbd5e0",
+                                  color: dateFilters.joinedAtFrom
+                                    ? "#2d3748"
+                                    : "transparent",
+                                  backgroundColor: "#ffffff",
+                                  padding: "6px 8px",
+                                  fontSize: "13px",
+                                  outline: "none",
+                                }}
+                              />
+                            </label>
+                            <label
+                              className="flex flex-col gap-1"
+                              style={{ fontSize: "12px", color: "#4a5568" }}
+                            >
+                              入社日（終了）
+                              <input
+                                type="date"
+                                value={dateFilters.joinedAtTo}
+                                onChange={(e) => {
+                                  setDateFilters((prev) => ({
+                                    ...prev,
+                                    joinedAtTo: e.target.value,
+                                  }));
+                                  setCurrentPage(1);
+                                }}
+                                className="rounded"
+                                style={{
+                                  border: "1px solid #cbd5e0",
+                                  color: dateFilters.joinedAtTo
+                                    ? "#2d3748"
+                                    : "transparent",
+                                  backgroundColor: "#ffffff",
+                                  padding: "6px 8px",
+                                  fontSize: "13px",
+                                  outline: "none",
+                                }}
+                              />
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -482,6 +677,7 @@ export default function UsersPage() {
                     onClick={() => {
                       setShowSortMenu((prev) => !prev);
                       setShowFilterMenu(false);
+                      setShowEmploymentStatusMenu(false);
                     }}
                     className="flex items-center gap-1 px-3 py-1.5 rounded text-sm"
                     style={{
@@ -553,27 +749,65 @@ export default function UsersPage() {
               </div>
 
               <div className="flex items-center justify-end gap-2">
-                <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-xs whitespace-nowrap"
+                <div
+                  className="flex items-center gap-2 px-3 py-1.5 rounded text-xs whitespace-nowrap"
                   style={{
                     border: "1px solid #cbd5e0",
                     color: "#4a5568",
                     backgroundColor: "#ffffff",
                   }}
                 >
-                  <span>日付を指定して過去のユーザー情報を表示</span>
-                  <span style={{ color: "#38b6e8" }}>📅</span>
-                </button>
+                  <input
+                    type="text"
+                    placeholder="日付を指定して過去のユーザー情報を表示"
+                    value={asOfDateInput}
+                    onChange={(e) => setAsOfDateInput(e.target.value)}
+                    style={{
+                      border: "none",
+                      color: "#2d3748",
+                      backgroundColor: "#ffffff",
+                      outline: "none",
+                      fontSize: "12px",
+                      width: "250px",
+                    }}
+                  />
+                  <span style={{ color: "#38b6e8", flexShrink: 0 }}>📅</span>
+                </div>
                 <button
+                  onClick={() => {
+                    setAsOfDate(asOfDateInput);
+                    setCurrentPage(1);
+                  }}
+                  disabled={!isDateValue(asOfDateInput)}
                   className="px-2.5 py-1.5 rounded text-xs font-medium flex-shrink-0"
                   style={{
                     border: "1px solid #cbd5e0",
-                    color: "#4a5568",
+                    color: isDateValue(asOfDateInput) ? "#4a5568" : "#a0aec0",
                     backgroundColor: "#ffffff",
+                    cursor: isDateValue(asOfDateInput)
+                      ? "pointer"
+                      : "not-allowed",
                   }}
                 >
                   指定
                 </button>
+                {asOfDate && (
+                  <button
+                    onClick={() => {
+                      setAsOfDateInput("");
+                      setAsOfDate("");
+                      setCurrentPage(1);
+                    }}
+                    className="px-2.5 py-1.5 rounded text-xs font-medium flex-shrink-0"
+                    style={{
+                      border: "1px solid #cbd5e0",
+                      color: "#38a169",
+                      backgroundColor: "#f0fff4",
+                    }}
+                  >
+                    解除
+                  </button>
+                )}
               </div>
             </div>
           </div>

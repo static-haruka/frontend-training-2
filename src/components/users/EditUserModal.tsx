@@ -17,6 +17,9 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
   const [firstNameKana, setFirstNameKana] = useState(user.firstNameKana);
   const [joinedAt, setJoinedAt] = useState(user.joinedAt);
   const [gender, setGender] = useState(user.gender);
+  const [employmentStatus, setEmploymentStatus] = useState(
+    user.employmentStatus || "在籍中",
+  );
   const [employeeId, setEmployeeId] = useState(user.employeeId);
   const [password, setPassword] = useState(user.password);
   const [company, setCompany] = useState(user.company);
@@ -35,6 +38,7 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
       firstNameKana,
       joinedAt,
       gender,
+      employmentStatus,
       employeeId,
       password,
       company,
@@ -186,6 +190,19 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
                       style={inputStyle}
                     />
                   </div>
+                  <div>
+                    <label style={labelStyle}>在籍状態</label>
+                    <select
+                      value={employmentStatus}
+                      onChange={(e) => setEmploymentStatus(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="在籍中">在籍中</option>
+                      <option value="退職済み">退職済み</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label style={labelStyle}>パスワード</label>
                     <input

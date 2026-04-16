@@ -11,6 +11,7 @@ export type User = {
   email: string;
   phone: string;
   gender: string;
+  employmentStatus?: string;
   joinedAt: string;
   password: string;
 };

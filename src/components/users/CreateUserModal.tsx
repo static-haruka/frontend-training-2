@@ -16,6 +16,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
   const [firstNameKana, setFirstNameKana] = useState("");
   const [joinedAt, setJoinedAt] = useState("");
   const [gender, setGender] = useState("");
+  const [employmentStatus, setEmploymentStatus] = useState("在籍中");
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const [company, setCompany] = useState("");
@@ -41,6 +42,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
       firstNameKana,
       joinedAt,
       gender,
+      employmentStatus,
       employeeId,
       password,
       company,
@@ -211,6 +213,20 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                       style={inputStyle}
                     />
                   </div>
+                  <div>
+                    <label style={labelStyle}>在籍状態</label>
+                    <select
+                      value={employmentStatus}
+                      onChange={(e) => setEmploymentStatus(e.target.value)}
+                      style={inputStyle}
+                    >
+                      <option value="在籍中">在籍中</option>
+                      <option value="退職済み">退職済み</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label style={labelStyle}>パスワード{requiredMark}</label>
                     <input
