@@ -16,7 +16,6 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
   const [firstNameKana, setFirstNameKana] = useState("");
   const [joinedAt, setJoinedAt] = useState("");
   const [gender, setGender] = useState("");
-  const [employmentStatus, setEmploymentStatus] = useState("在籍中");
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const [company, setCompany] = useState("");
@@ -42,7 +41,6 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
       firstNameKana,
       joinedAt,
       gender,
-      employmentStatus,
       employeeId,
       password,
       company,
@@ -63,20 +61,39 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
     password;
 
   const inputStyle: React.CSSProperties = {
-    border: "1px solid #cbd5e0",
+    border: "1px solid #d9dee7",
     borderRadius: "4px",
-    padding: "8px 12px",
-    fontSize: "14px",
+    padding: "3px 10px",
+    fontSize: "12px",
     color: "#2d3748",
     outline: "none",
     width: "100%",
+    height: "22px",
+    backgroundColor: "#ffffff",
   };
 
   const labelStyle: React.CSSProperties = {
-    fontSize: "13px",
+    fontSize: "11px",
     color: "#4a5568",
-    marginBottom: "4px",
+    marginBottom: "3px",
     display: "block",
+    fontWeight: 600,
+  };
+
+  const attachedSelectStyle: React.CSSProperties = {
+    ...inputStyle,
+    width: "168px",
+    flexShrink: 0,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  };
+
+  const attachedInputStyle: React.CSSProperties = {
+    ...inputStyle,
+    minWidth: 0,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    marginLeft: "-1px",
   };
 
   const requiredMark = (
@@ -89,22 +106,21 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
       style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
     >
       <div
-        className="rounded-lg shadow-xl w-full flex flex-col"
+        className="w-full flex flex-col"
         style={{
           backgroundColor: "#ffffff",
-          maxWidth: "680px",
-          maxHeight: "90vh",
+          maxWidth: "590px",
+          maxHeight: "92vh",
         }}
       >
         <div
-          className="flex items-center justify-between py-4 flex-shrink-0"
+          className="flex items-center justify-between flex-shrink-0"
           style={{
             borderLeft: "3px solid #38a169",
-            paddingLeft: "16px",
-            paddingRight: "24px",
+            padding: "10px 12px 8px 10px",
           }}
         >
-          <h2 className="text-lg font-semibold" style={{ color: "#2d3748" }}>
+          <h2 className="text-base font-semibold" style={{ color: "#276749" }}>
             新規アカウント作成
           </h2>
           <button
@@ -116,20 +132,25 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
+        <div className="overflow-y-auto flex-1 px-8 py-1 flex flex-col gap-3">
           <div
-            className="rounded-lg p-5"
-            style={{ backgroundColor: "#f7fafc", border: "1px solid #e2e8f0" }}
+            className="rounded-lg"
+            style={{
+              backgroundColor: "#f9fafb",
+              border: "1px solid #eef1f5",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              padding: "10px 12px",
+            }}
           >
             <h3
-              className="text-sm font-semibold mb-4 flex items-center gap-2"
-              style={{ color: "#38a169" }}
+              className="font-semibold mb-3 flex items-center gap-2"
+              style={{ color: "#276749", fontSize: "13px" }}
             >
               ❖ 基本情報
             </h3>
-            <div className="flex gap-4">
-              <div className="flex-1 flex flex-col gap-3">
-                <div className="grid grid-cols-2 gap-3">
+            <div className="flex gap-8">
+              <div className="flex-1 flex flex-col gap-2">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                   <div>
                     <label style={labelStyle}>姓{requiredMark}</label>
                     <input
@@ -152,7 +173,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                   <div>
                     <label style={labelStyle}>姓(カナ){requiredMark}</label>
                     <input
@@ -175,7 +196,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                   <div>
                     <label style={labelStyle}>入社日</label>
                     <input
@@ -203,7 +224,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-x-2 gap-y-2">
                   <div>
                     <label style={labelStyle}>社員ID</label>
                     <input
@@ -213,20 +234,6 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                       style={inputStyle}
                     />
                   </div>
-                  <div>
-                    <label style={labelStyle}>在籍状態</label>
-                    <select
-                      value={employmentStatus}
-                      onChange={(e) => setEmploymentStatus(e.target.value)}
-                      style={inputStyle}
-                    >
-                      <option value="在籍中">在籍中</option>
-                      <option value="退職済み">退職済み</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label style={labelStyle}>パスワード{requiredMark}</label>
                     <input
@@ -241,31 +248,42 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
               </div>
 
               <div
-                className="flex flex-col items-center gap-2 flex-shrink-0"
-                style={{ width: "100px" }}
+                className="flex flex-col items-center flex-shrink-0"
+                style={{ width: "110px", paddingTop: "30px" }}
               >
                 <div
                   className="rounded-full flex items-center justify-center relative"
                   style={{
-                    width: "80px",
-                    height: "80px",
-                    backgroundColor: "#cbd5e0",
+                    width: "96px",
+                    height: "96px",
+                    backgroundColor: "#e1e1e1",
                   }}
                 >
-                  <UserIcon size={40} color="#718096" />
+                  <UserIcon size={58} color="#8f8f8f" />
                   <button
                     className="absolute bottom-0 right-0 rounded-full flex items-center justify-center"
                     style={{
-                      width: "24px",
-                      height: "24px",
+                      width: "22px",
+                      height: "22px",
                       backgroundColor: "#38a169",
                       color: "#ffffff",
+                      border: "3px solid #ffffff",
                     }}
                   >
                     <Camera size={12} />
                   </button>
                 </div>
-                <p className="text-xs text-center" style={{ color: "#718096" }}>
+                <p
+                  className="text-center"
+                  style={{
+                    color: "#718096",
+                    fontSize: "9px",
+                    lineHeight: 1.35,
+                    marginTop: "10px",
+                  }}
+                >
+                  <span style={{ color: "#ef4444" }}>▲</span>
+                  <br />
                   プロフィール画像は
                   <br />
                   ユーザー本人でも
@@ -277,16 +295,21 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
           </div>
 
           <div
-            className="rounded-lg p-5"
-            style={{ backgroundColor: "#f7fafc", border: "1px solid #e2e8f0" }}
+            className="rounded-lg"
+            style={{
+              backgroundColor: "#f9fafb",
+              border: "1px solid #eef1f5",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              padding: "10px 12px",
+            }}
           >
             <h3
-              className="text-sm font-semibold mb-4 flex items-center gap-2"
-              style={{ color: "#38a169" }}
+              className="font-semibold mb-3 flex items-center gap-2"
+              style={{ color: "#276749", fontSize: "13px" }}
             >
               ❖ 所属情報
             </h3>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2">
               <div>
                 <label style={labelStyle}>会社・所属</label>
                 <input
@@ -321,42 +344,47 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
           </div>
 
           <div
-            className="rounded-lg p-5"
-            style={{ backgroundColor: "#f7fafc", border: "1px solid #e2e8f0" }}
+            className="rounded-lg"
+            style={{
+              backgroundColor: "#f9fafb",
+              border: "1px solid #eef1f5",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+              padding: "10px 12px",
+            }}
           >
             <h3
-              className="text-sm font-semibold mb-4"
-              style={{ color: "#38a169" }}
+              className="font-semibold mb-3"
+              style={{ color: "#276749", fontSize: "13px" }}
             >
               ❖ その他情報
             </h3>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-2">
               <div>
                 <label style={labelStyle}>メールアドレス</label>
                 <div className="flex items-center gap-2">
-                  <select
-                    style={{ ...inputStyle, width: "140px", flexShrink: 0 }}
-                  >
-                    <option>社用メールアドレス</option>
-                    <option>個人メールアドレス</option>
-                  </select>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@example.com"
-                    style={inputStyle}
-                  />
+                  <div className="flex flex-1 min-w-0">
+                    <select style={attachedSelectStyle}>
+                      <option>社用メールアドレス</option>
+                      <option>個人メールアドレス</option>
+                    </select>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@example.com"
+                      style={attachedInputStyle}
+                    />
+                  </div>
                   <button
                     className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
-                      width: "28px",
-                      height: "28px",
+                      width: "18px",
+                      height: "18px",
                       backgroundColor: "#38a169",
                       color: "#ffffff",
                     }}
                   >
-                    <Plus size={14} />
+                    <Plus size={11} />
                   </button>
                 </div>
               </div>
@@ -364,29 +392,29 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
               <div>
                 <label style={labelStyle}>電話番号</label>
                 <div className="flex items-center gap-2">
-                  <select
-                    style={{ ...inputStyle, width: "140px", flexShrink: 0 }}
-                  >
-                    <option>携帯電話</option>
-                    <option>固定電話</option>
-                  </select>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="090-1234-5678"
-                    style={inputStyle}
-                  />
+                  <div className="flex flex-1 min-w-0">
+                    <select style={attachedSelectStyle}>
+                      <option>携帯電話</option>
+                      <option>固定電話</option>
+                    </select>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="090-1234-5678"
+                      style={attachedInputStyle}
+                    />
+                  </div>
                   <button
                     className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
-                      width: "28px",
-                      height: "28px",
+                      width: "18px",
+                      height: "18px",
                       backgroundColor: "#38a169",
                       color: "#ffffff",
                     }}
                   >
-                    <Plus size={14} />
+                    <Plus size={11} />
                   </button>
                 </div>
               </div>
@@ -395,23 +423,31 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
         </div>
 
         <div
-          className="flex justify-end gap-3 px-6 py-4 flex-shrink-0"
-          style={{ borderTop: "1px solid #e2e8f0" }}
+          className="flex justify-end gap-2 px-3 py-3 flex-shrink-0"
         >
           <button
             onClick={onClose}
-            className="px-6 py-2 rounded text-sm transition-colors"
-            style={{ border: "1px solid #cbd5e0", color: "#4a5568" }}
+            className="rounded transition-colors"
+            style={{
+              border: "1px solid #d9dee7",
+              color: "#718096",
+              padding: "8px 18px",
+              fontSize: "12px",
+              backgroundColor: "#ffffff",
+            }}
           >
             キャンセル
           </button>
           <button
             onClick={handleSubmit}
             disabled={!isValid}
-            className="px-6 py-2 rounded text-sm text-white flex items-center gap-2"
+            className="rounded text-white flex items-center gap-2"
             style={{
               backgroundColor: isValid ? "#38a169" : "#a0aec0",
               cursor: isValid ? "pointer" : "not-allowed",
+              padding: "8px 18px",
+              fontSize: "12px",
+              fontWeight: 600,
             }}
           >
             アカウント作成 ✓

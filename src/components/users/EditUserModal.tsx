@@ -17,9 +17,6 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
   const [firstNameKana, setFirstNameKana] = useState(user.firstNameKana);
   const [joinedAt, setJoinedAt] = useState(user.joinedAt);
   const [gender, setGender] = useState(user.gender);
-  const [employmentStatus, setEmploymentStatus] = useState(
-    user.employmentStatus || "在籍中",
-  );
   const [employeeId, setEmployeeId] = useState(user.employeeId);
   const [password, setPassword] = useState(user.password);
   const [company, setCompany] = useState(user.company);
@@ -38,7 +35,6 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
       firstNameKana,
       joinedAt,
       gender,
-      employmentStatus,
       employeeId,
       password,
       company,
@@ -68,6 +64,22 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
     color: "#4a5568",
     marginBottom: "4px",
     display: "block",
+  };
+
+  const attachedSelectStyle: React.CSSProperties = {
+    ...inputStyle,
+    width: "176px",
+    flexShrink: 0,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+  };
+
+  const attachedInputStyle: React.CSSProperties = {
+    ...inputStyle,
+    minWidth: 0,
+    borderTopLeftRadius: 0,
+    borderBottomLeftRadius: 0,
+    marginLeft: "-1px",
   };
 
   const requiredMark = (
@@ -191,19 +203,6 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
                     />
                   </div>
                   <div>
-                    <label style={labelStyle}>在籍状態</label>
-                    <select
-                      value={employmentStatus}
-                      onChange={(e) => setEmploymentStatus(e.target.value)}
-                      style={inputStyle}
-                    >
-                      <option value="在籍中">在籍中</option>
-                      <option value="退職済み">退職済み</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
                     <label style={labelStyle}>パスワード</label>
                     <input
                       type="password"
@@ -300,18 +299,18 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
               <div>
                 <label style={labelStyle}>メールアドレス</label>
                 <div className="flex items-center gap-2">
-                  <select
-                    style={{ ...inputStyle, width: "140px", flexShrink: 0 }}
-                  >
-                    <option>社用メールアドレス</option>
-                    <option>個人メールアドレス</option>
-                  </select>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    style={inputStyle}
-                  />
+                  <div className="flex flex-1 min-w-0">
+                    <select style={attachedSelectStyle}>
+                      <option>社用メールアドレス</option>
+                      <option>個人メールアドレス</option>
+                    </select>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={attachedInputStyle}
+                    />
+                  </div>
                   <button
                     className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{
@@ -328,18 +327,18 @@ export default function EditUserModal({ user, onClose, onUpdate }: Props) {
               <div>
                 <label style={labelStyle}>電話番号</label>
                 <div className="flex items-center gap-2">
-                  <select
-                    style={{ ...inputStyle, width: "140px", flexShrink: 0 }}
-                  >
-                    <option>携帯電話</option>
-                    <option>固定電話</option>
-                  </select>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    style={inputStyle}
-                  />
+                  <div className="flex flex-1 min-w-0">
+                    <select style={attachedSelectStyle}>
+                      <option>携帯電話</option>
+                      <option>固定電話</option>
+                    </select>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      style={attachedInputStyle}
+                    />
+                  </div>
                   <button
                     className="rounded-full flex items-center justify-center flex-shrink-0"
                     style={{

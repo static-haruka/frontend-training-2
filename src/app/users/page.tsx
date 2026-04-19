@@ -940,6 +940,15 @@ export default function UsersPage() {
                 <UserTable
                   users={pagedUsers}
                   visibleColumns={visibleColumns}
+                  columnFilters={filters}
+                  columnFilterOptions={filterOptions}
+                  onColumnFilterChange={(key, value) => {
+                    setFilters((prev) => ({
+                      ...prev,
+                      [key]: value,
+                    }));
+                    setCurrentPage(1);
+                  }}
                   onEdit={(user) => setEditTarget(user)}
                   onDelete={(user) => setDeleteTarget(user)}
                 />
