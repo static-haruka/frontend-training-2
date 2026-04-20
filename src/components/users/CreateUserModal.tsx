@@ -249,7 +249,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
 
               <div
                 className="flex flex-col items-center flex-shrink-0"
-                style={{ width: "110px", paddingTop: "30px" }}
+                style={{ width: "140px", paddingTop: "30px" }}
               >
                 <div
                   className="rounded-full flex items-center justify-center relative"
@@ -280,15 +280,24 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
                     fontSize: "9px",
                     lineHeight: 1.35,
                     marginTop: "10px",
+                    width: "140px",
                   }}
                 >
                   <span style={{ color: "#ef4444" }}>▲</span>
                   <br />
                   プロフィール画像は
                   <br />
-                  ユーザー本人でも
+                  ユーザ本人でも登録可能です。
                   <br />
-                  登録可能です。
+                  <span style={{ display: "inline-block", marginTop: "6px" }}>
+                    アップロードの際は
+                  </span>
+                  <br />
+                  個人情報漏洩など
+                  <br />
+                  セキュリティリスクを
+                  <br />
+                  十分に考慮してください。
                 </p>
               </div>
             </div>
@@ -422,9 +431,7 @@ export default function CreateUserModal({ onClose, onCreate }: Props) {
           </div>
         </div>
 
-        <div
-          className="flex justify-end gap-2 px-3 py-3 flex-shrink-0"
-        >
+        <div className="flex justify-end gap-2 px-3 py-3 flex-shrink-0">
           <button
             onClick={onClose}
             className="rounded transition-colors"

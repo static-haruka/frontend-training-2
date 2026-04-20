@@ -37,6 +37,12 @@ export default function UserTable({
   );
   const show = (key: ColumnKey) => visibleColumns.includes(key);
   const visibleColumnCount = visibleColumns.length + 2;
+  const headerCellStyle: React.CSSProperties = {
+    color: "#a0aec0",
+    position: "relative",
+    backgroundColor: "#ffffff",
+    boxShadow: "inset 0 -1px 0 #e2e8f0",
+  };
 
   const renderFilterHeader = (key: ColumnKey, label: string) => {
     const isOpen = openFilterColumn === key;
@@ -45,9 +51,12 @@ export default function UserTable({
     return (
       <th
         className="text-left px-4 py-3 font-medium"
-        style={{ color: "#a0aec0", position: "relative" }}
+        style={headerCellStyle}
       >
-        <div className="flex items-center gap-1">
+        <div
+          className="flex items-center gap-1"
+          style={{ position: "relative" }}
+        >
           {label}
           <button
             type="button"
@@ -136,17 +145,23 @@ export default function UserTable({
       className="rounded"
       style={{ border: "1px solid #e2e8f0", backgroundColor: "#ffffff" }}
     >
-      <table className="w-full text-sm">
+      <table
+        className="w-full text-sm"
+        style={{ borderCollapse: "separate", borderSpacing: 0 }}
+      >
         <thead
           style={{
             position: "sticky",
             top: 0,
+            zIndex: 30,
             backgroundColor: "#ffffff",
-            zIndex: 10,
           }}
         >
-          <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
-            <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+          <tr>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={headerCellStyle}
+            >
               <div className="flex items-center gap-1">
                 名前
                 <ArrowDown size={12} style={{ color: "#a0aec0" }} />
@@ -164,7 +179,10 @@ export default function UserTable({
             {show("company") && (
               renderFilterHeader("company", "会社・所属")
             )}
-            <th className="text-left px-4 py-3 font-medium" style={{ color: "#a0aec0" }}>
+            <th
+              className="text-left px-4 py-3 font-medium"
+              style={headerCellStyle}
+            >
               操作
             </th>
           </tr>
