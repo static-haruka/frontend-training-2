@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { ChevronDown, ChevronUp, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState } from "react";
 import { navItems } from "@/lib/navItems";
@@ -11,12 +10,16 @@ type Props = {
   onToggle: () => void;
 };
 
-const ICON_AREA_WIDTH = 56;
+const ICON_AREA_WIDTH = 54;
+const SIDEBAR_BG = "#43454d";
+const HOVER_BG = "#54565e";
+const OPEN_BG = "#4b4d55";
+const TEXT_COLOR = "#e5e7eb";
+const HOVER_TEXT_COLOR = "#a9d8ff";
 
 export default function Sidebar({ expanded, onToggle }: Props) {
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const pathname = usePathname();
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
@@ -36,7 +39,7 @@ export default function Sidebar({ expanded, onToggle }: Props) {
   const rowStyle = (bg: string): React.CSSProperties => ({
     display: "flex",
     alignItems: "center",
-    height: "40px",
+    height: "38px",
     backgroundColor: bg,
     cursor: "pointer",
     width: "100%",
@@ -51,10 +54,10 @@ export default function Sidebar({ expanded, onToggle }: Props) {
           top: "0px",
           left: "0px",
           width: `${sidebarWidth}px`,
-          height: "48px",
-          backgroundColor: "#1a202c",
-          color: "#e2e8f0",
-          borderBottom: "1px solid #3d4f63",
+          height: "44px",
+          backgroundColor: SIDEBAR_BG,
+          color: "#d8dae0",
+          borderRight: "1px solid #585b65",
           zIndex: 50,
           display: "flex",
           alignItems: "center",
@@ -68,12 +71,13 @@ export default function Sidebar({ expanded, onToggle }: Props) {
       <aside
         className="fixed left-0 bottom-0 flex flex-col transition-all duration-200"
         style={{
-          top: "48px",
+          top: "44px",
           width: sidebarWidth,
-          backgroundColor: "#2d3748",
+          backgroundColor: SIDEBAR_BG,
           overflowX: "hidden",
-          overflowY: "scroll",
+          overflowY: "auto",
           scrollbarWidth: "none",
+          borderRight: "1px solid #585b65",
           zIndex: 20,
         }}
       >
@@ -93,26 +97,26 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                     onMouseLeave={() => setHoveredItem(null)}
                     className="text-sm transition-colors text-left"
                     style={{
-                      ...rowStyle(isOpen ? "#1a202c" : "transparent"),
-                      color: isHovered ? "#90cdf4" : "#e2e8f0",
+                      ...rowStyle(isHovered ? HOVER_BG : isOpen ? OPEN_BG : "transparent"),
+                      color: isHovered ? HOVER_TEXT_COLOR : TEXT_COLOR,
                     }}
                   >
-                    <span style={iconArea}><Icon size={18} /></span>
+                    <span style={iconArea}><Icon size={15} strokeWidth={1.75} /></span>
                     {expanded && (
                       <>
                         <span className="flex-1 whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                           {item.label}
                         </span>
                         {isOpen
-                          ? <ChevronDown size={14} className="flex-shrink-0 mr-3" />
-                          : <ChevronUp size={14} className="flex-shrink-0 mr-3" />
+                          ? <ChevronDown size={13} className="flex-shrink-0 mr-3" />
+                          : <ChevronUp size={13} className="flex-shrink-0 mr-3" />
                         }
                       </>
                     )}
                   </button>
 
                   {isOpen && (
-                    <div style={{ backgroundColor: "#1a202c" }}>
+                    <div style={{ backgroundColor: OPEN_BG }}>
                       {item.children!.map((child) => {
                         const ChildIcon = child.icon;
                         const isChildHovered = hoveredItem === child.href;
@@ -124,12 +128,12 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                             onMouseLeave={() => setHoveredItem(null)}
                             className="text-sm transition-colors"
                             style={{
-                              ...rowStyle("transparent"),
-                              color: isChildHovered ? "#90cdf4" : "#e2e8f0",
+                              ...rowStyle(isChildHovered ? HOVER_BG : "transparent"),
+                              color: isChildHovered ? HOVER_TEXT_COLOR : TEXT_COLOR,
                               textDecoration: "none",
                             }}
                           >
-                            <span style={iconArea}><ChildIcon size={18} /></span>
+                            <span style={iconArea}><ChildIcon size={15} strokeWidth={1.75} /></span>
                             {expanded && (
                               <span className="whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                                 {child.label}
@@ -152,12 +156,12 @@ export default function Sidebar({ expanded, onToggle }: Props) {
                 onMouseLeave={() => setHoveredItem(null)}
                 className="text-sm transition-colors"
                 style={{
-                  ...rowStyle("transparent"),
-                  color: isHovered ? "#90cdf4" : "#e2e8f0",
+                  ...rowStyle(isHovered ? HOVER_BG : "transparent"),
+                  color: isHovered ? HOVER_TEXT_COLOR : TEXT_COLOR,
                   textDecoration: "none",
                 }}
               >
-                <span style={iconArea}><Icon size={18} /></span>
+                <span style={iconArea}><Icon size={15} strokeWidth={1.75} /></span>
                 {expanded && (
                   <span className="whitespace-nowrap overflow-hidden text-ellipsis text-sm">
                     {item.label}

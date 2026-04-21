@@ -11,8 +11,8 @@ export default function Home() {
   const sidebarWidth = sidebarExpanded ? 210 : 56;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#f0f2f5" }}>
-      <Header sidebarWidth={sidebarWidth} />
+    <div className="min-h-screen" style={{ backgroundColor: "#eef2f6" }}>
+      <Header sidebarWidth={sidebarWidth} showAccountInfo={false} />
       <TabBar sidebarWidth={sidebarWidth} />
       <Sidebar
         expanded={sidebarExpanded}
@@ -21,10 +21,10 @@ export default function Home() {
       <main
         className="transition-all duration-200"
         style={{
-          marginTop: "58px",
+          marginTop: "51px",
           marginLeft: `${sidebarWidth}px`,
-          padding: "24px",
-          minHeight: "calc(100vh - 58px)",
+          padding: "16px 18px",
+          minHeight: "calc(100vh - 51px)",
         }}
       >
         <Calendar />
